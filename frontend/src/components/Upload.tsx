@@ -29,18 +29,12 @@ function Upload() {
       setStatus("uploading");
 
       // Now convert it to form data as we are going to be sending it to the backend server
-      //  Need to add authentification token here.
+      // Need to add authentification token here.
       const formData = new FormData();
       formData.append("file", file); 
       // axios.post(url, data, config) formData is our request body.
       try {
-        const response = await axios.post("https://httpbin.org/post",
-          formData, 
-          {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }); 
+        const response = await axios.post("http://localhost:8000/db/upload_db", formData);
 
         console.log(response.data);
         setStatus("success");
