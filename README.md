@@ -23,7 +23,7 @@ I wanted to work on this project as I often found myself having a bit of trouble
 - Python
 - FastAPI
 - PostgresSQL
-- Kubernetes
+- Docker
 - AWS
 
 ## Project Structure
