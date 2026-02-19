@@ -23,7 +23,7 @@ def upload_db(file: UploadFile = File(...)) -> dict:
     Returns:
         dict - A response object (dictionary) containing the message "File uploaded successfully".
     '''
-    
+
     # If no file is provided, raise an error.
     if not file.filename:
         raise HTTPException(status_code=400, detail="No file provided")
@@ -33,6 +33,8 @@ def upload_db(file: UploadFile = File(...)) -> dict:
 
     # Give dataset a unique id, and then its directory, From this current directory, we will create the copy of the file.
     dataset_id = str(uuid.uuid4())
+
+
     dataset_dir = DATA_ROOT / dataset_id
     dataset_dir.mkdir(parents=True, exist_ok=True)
 
@@ -42,6 +44,20 @@ def upload_db(file: UploadFile = File(...)) -> dict:
 
         print(f"Raw file saved to {raw_path} with size {raw_size}")
         print(f"Parquet file saved to {parquet_path}")
-    
+
+    if upload_type == 'sqlite':
+        raw_path, raw_size = save_raw_file(dataset_dir, file)
+        print(f"Raw file saved to {raw_path} with size {raw_size}")
+
+
+    new_dataset = Dataset(
+        dataset_id=dataset_id,
+        upload_type=upload_type,
+        raw_byte_size=raw_size,
+        tables={"parquet": str(parquet_path)},
+        schema={}
+    )
+
+    print(new_dataset)
 
     return { "message": "File uploaded successfully"}

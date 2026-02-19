@@ -53,7 +53,7 @@ def save_raw_file(dataset_dir: Path, file: UploadFile) -> Path:
     if not dataset_dir.exists():
         raise FileNotFoundError(f"Dataset directory {dataset_dir} does not exist.")
 
-    raw_saving_path = dataset_dir / f"raw_{file.filename}"
+    raw_saving_path = dataset_dir / f"{file.filename}"
     size = 0
 
     with open(raw_saving_path, "wb") as f:
@@ -68,6 +68,7 @@ def save_raw_file(dataset_dir: Path, file: UploadFile) -> Path:
             f.write(chunk)
             size += len(chunk)
 
+    # returns raw_saving_path(Path), size(int)
     return raw_saving_path, size
 
 def save_parquet_file(dataset_dir: Path, raw_csv_path: Path) -> Path:
@@ -90,6 +91,11 @@ def save_parquet_file(dataset_dir: Path, raw_csv_path: Path) -> Path:
     duckdb.read_csv(str(raw_csv_path)).write_parquet(str(parquet_path))
 
     return parquet_path
+
+# Potential next functions to add
+# - Save JSON Files
+# - Conversion function of SQL to CSV (this can be done by converting each table into a parquet file.)
+# - Conversion of CSV to SQL (this can be done by converting each parquet file into a table in the sqlite database.)
 
 
 if __name__ == "__main__":
