@@ -1,7 +1,7 @@
 from fastapi import FastAPI, APIRouter
 from fastapi import UploadFile, File
 import uuid
-from .db_services import detect_upload_type, save_raw_file
+from .db_services import detect_upload_type, save_raw_file, save_parquet_file
 from .db_constants import DATA_ROOT
 from .db_constants import Dataset
 
@@ -23,21 +23,25 @@ def upload_db(file: UploadFile = File(...)) -> dict:
     Returns:
         dict - A response object (dictionary) containing the message "File uploaded successfully".
     '''
-    # Return a JSON response to the frontend
+    
+    # If no file is provided, raise an error.
     if not file.filename:
         raise HTTPException(status_code=400, detail="No file provided")
 
+    # Detect the type of the file.
     upload_type = detect_upload_type(file.filename)
 
-    # Give dataset a unique id, and then its directory.
+    # Give dataset a unique id, and then its directory, From this current directory, we will create the copy of the file.
     dataset_id = str(uuid.uuid4())
-    # From this current directory, we will create.
     dataset_dir = DATA_ROOT / dataset_id
-
     dataset_dir.mkdir(parents=True, exist_ok=True)
 
-    raw_path, raw_size = save_raw_file(dataset_dir, file)
+    if upload_type == "csv":
+        raw_path, raw_size = save_raw_file(dataset_dir, file)
+        parquet_path = save_parquet_file(dataset_dir, raw_path)
 
-    print(f"Raw file saved to {raw_path} with size {raw_size}")
+        print(f"Raw file saved to {raw_path} with size {raw_size}")
+        print(f"Parquet file saved to {parquet_path}")
+    
 
     return { "message": "File uploaded successfully"}

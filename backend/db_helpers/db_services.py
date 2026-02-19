@@ -70,6 +70,28 @@ def save_raw_file(dataset_dir: Path, file: UploadFile) -> Path:
 
     return raw_saving_path, size
 
+def save_parquet_file(dataset_dir: Path, raw_csv_path: Path) -> Path:
+    '''
+    save_parquet_file is a function that saves the parquet file to the dataset directory.
+
+    Args:
+        dataset_dir: Path - The directory to save the parquet file to. (
+        raw_csv_path: the path to the raw csv file.
+
+    Returns:
+        Path - The path to the saved parquet file.
+    '''
+
+    # Make a tables directory for storing a parquet file. 
+    tables_dir = dataset_dir / "tables"
+    tables_dir.mkdir(parents=True, exist_ok=True)
+
+    parquet_path = tables_dir / f"{raw_csv_path.stem}.parquet" # We will name the parquet file the same as the csv file.
+    duckdb.read_csv(str(raw_csv_path)).write_parquet(str(parquet_path))
+
+    return parquet_path
+
+
 if __name__ == "__main__":
     print(detect_upload_type("test.csv"))
     
