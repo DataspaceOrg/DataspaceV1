@@ -11,6 +11,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Dataset directory from the base directory.
 DATA_ROOT = BASE_DIR / "datasets"
 
+# For local metadata storage
+METADATA_DB = BASE_DIR / "metadata.db"
+
+# Metadata table name in the metadata database.
+METADATA_TABLE = "datasets_metadata"
+
 class Dataset(BaseModel):
     '''
     Dataset is a model that represents the metadata of a dataset that gets uploaded to the database.
@@ -23,8 +29,8 @@ class Dataset(BaseModel):
     dataset_id: str
     upload_type: UploadType
     raw_byte_size: int
-    tables: dict[str, str]
-    schema: dict 
+    tables: dict[str, str]  # table name -> path to that table's data
+    schema: dict[str, dict[str, str]] #schema is a dictionary of the table name and the column names and their types.
 
 if __name__ == "__main__":
     print(BASE_DIR)
