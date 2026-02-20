@@ -42,22 +42,25 @@ def upload_db(file: UploadFile = File(...)) -> dict:
         raw_path, raw_size = save_raw_file(dataset_dir, file)
         parquet_path = save_parquet_file(dataset_dir, raw_path)
 
+        new_dataset = Dataset(
+            dataset_id=dataset_id,
+            upload_type=upload_type,
+            raw_byte_size=raw_size,
+            tables={"parquet": str(parquet_path)},
+            schema={}
+        )
+
+        print(new_dataset)
+
         print(f"Raw file saved to {raw_path} with size {raw_size}")
         print(f"Parquet file saved to {parquet_path}")
 
-    if upload_type == 'sqlite':
+    print(upload_type)
+
+    if upload_type == 'db':
         raw_path, raw_size = save_raw_file(dataset_dir, file)
         print(f"Raw file saved to {raw_path} with size {raw_size}")
 
 
-    new_dataset = Dataset(
-        dataset_id=dataset_id,
-        upload_type=upload_type,
-        raw_byte_size=raw_size,
-        tables={"parquet": str(parquet_path)},
-        schema={}
-    )
-
-    print(new_dataset)
 
     return { "message": "File uploaded successfully"}

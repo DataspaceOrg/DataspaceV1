@@ -3,3 +3,4 @@ __pycache__
 .venv
 .
 datasets/
+db_helpers/test_data

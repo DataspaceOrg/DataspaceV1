@@ -1,4 +1,6 @@
 import os
+import sys
+import sqlite3
 import duckdb
 import uuid
 from pathlib import Path
@@ -6,7 +8,7 @@ import logging
 from sqlalchemy import (
     create_engine, Column, String, DateTime, Integer, Text
 )
-from .db_constants import DATA_ROOT
+from db_helpers.db_constants import DATA_ROOT
 from fastapi import UploadFile
 
 
@@ -30,6 +32,8 @@ def detect_upload_type(filename: str):
         return "json"
     elif extension == ".jsonl":
         return "jsonl"
+    elif extension == ".db":
+        return "db"
     elif extension == ".sqlite":
         return "sqlite"
     elif extension == ".sql_dump":
@@ -92,6 +96,54 @@ def save_parquet_file(dataset_dir: Path, raw_csv_path: Path) -> Path:
 
     return parquet_path
 
+def get_sqlite_table_names(sqlite_path: Path) -> list[str]:
+    '''
+    get_sqlite_table_names is a function that gets the table names from the sqlite database. Connection is done via sqlite3. 
+
+    Args:
+        sqlite_path: Path - The path to the sqlite database.
+
+    Returns:
+        list[str] - The table names in the sqlite database.
+    '''
+
+    # Connect to the sqlite database.
+    sqlite_conn = sqlite3.connect(str(sqlite_path))
+
+    # Get the table names from the sqlite database.
+    cursor = sqlite_conn.execute(
+            "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name")
+
+    table_names = cursor.fetchall()
+
+    return [table[0] for table in table_names]
+
+
+def get_sqlite_schema(sqlite_path: Path) -> dict:
+    '''
+    get_sqlite_schema is a function that gets the schema of the sqlite database.
+
+    Args:
+        sqlite_path: Path - The path to the sqlite database.
+
+    Returns:
+        the schema of a SQLite database, for each table it will be a dictionary of the column names and their types. 
+    '''
+    table_names = get_sqlite_table_names(sqlite_path)
+
+    # dict[table_name: dict[column_name: column_type]]
+    schema: dict[str, dict[str, str]] = {}
+
+    conn = sqlite3.connect(str(sqlite_path))
+    for table in table_names:
+        # Fetching all of the columns in the table and their types
+        cursor = conn.execute(f"PRAGMA table_info({table})")
+        schema[table] = {column[1]: column[2] }
+    
+
+
+
+
 # Potential next functions to add
 # - Save JSON Files
 # - Conversion function of SQL to CSV (this can be done by converting each table into a parquet file.)
@@ -99,6 +151,8 @@ def save_parquet_file(dataset_dir: Path, raw_csv_path: Path) -> Path:
 
 
 if __name__ == "__main__":
-    print(detect_upload_type("test.csv"))
+    print(os.getcwd())
+    print(get_sqlite_table_names(Path("db_helpers/test_data/test_sql.db")))
+    get_sqlite_schema(Path("db_helpers/test_data/test_sql.db"))
     
-# running python3 db_helpers/db_services.py 
+# running python3 -m db_helpers.db_services
