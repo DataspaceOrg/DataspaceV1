@@ -33,8 +33,8 @@ function Upload() {
         const response = await axios.post("http://localhost:8000/db/upload_db", formData, {
           onUploadProgress: (e) => {
             if (e.total) {
-              const pct = Math.round((e.loaded / e.total) * 100);
-              setUploadProgress(pct); // e.g. 0–100
+              const set_pct = Math.round((e.loaded / e.total) * 100);
+              setUploadProgress(set_pct); // e.g. 0–100
             }
           },
         });
@@ -62,6 +62,7 @@ function Upload() {
       {file && status !== "uploading" && <button className="bg-blue-500 text-white px-4 py-2 rounded-md" onClick={handleFileUpload}>Upload</button>}
       {status === "success" && <p className="text-green-500">File uploaded successfully</p>}
       {status === "error" && <p className="text-red-500">File upload failed</p>}
+      {status === "uploading" && <p className="text-yellow-500">Uploading... {pct}%</p>}
     </div>
     
   )
