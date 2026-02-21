@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, HTTPException
 from fastapi import UploadFile, File
 import uuid
 from .db_services import (
@@ -10,9 +10,11 @@ from .db_services import (
     get_sqlite_table_names,
     list_datasets,
     get_dataset_by_id,
+    save_metadata,
 )
 from .db_constants import DATA_ROOT
 from .db_constants import Dataset
+
 
 router = APIRouter(prefix="/db", tags=["db"])
 
