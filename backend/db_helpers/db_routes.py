@@ -9,6 +9,7 @@ from .db_services import (
     get_sqlite_schema,
     get_sqlite_table_names,
     list_datasets,
+    get_dataset_by_id,
 )
 from .db_constants import DATA_ROOT
 from .db_constants import Dataset
@@ -19,6 +20,13 @@ router = APIRouter(prefix="/db", tags=["db"])
 def read_root():
     # Return a JSON response to the frontend
     return {"message": "Welcome to the DB Helper API"}
+
+@router.get("/dataset/{dataset_id}")
+def get_dataset_route(dataset_id: str) -> Dataset:
+    '''
+    Get dataset is a service that allows for the frontend to get a dataset by its id.
+    '''
+    return get_dataset_by_id(dataset_id)
 
 @router.get("/datasets")
 def list_datasets_route() -> list[Dataset]:
@@ -59,8 +67,6 @@ def upload_db(file: UploadFile = File(...)) -> dict:
             tables={table_key: str(parquet_path)}, # the table key will be the parquet path. 
             schema=schema,
         )
-
-        print(new_dataset)
 
     if upload_type == "db" or upload_type == "sqlite":
         # If its a SQL db, save the raw db file, and then retrieve the tables and schema for metadata.

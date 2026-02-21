@@ -190,7 +190,6 @@ def save_metadata(dataset: Dataset):
     '''
 
     data = dataset.model_dump()
-    print(data)
     # get the connection to the metadata database.
     conn = connect_metadata_db()
 
@@ -225,6 +224,29 @@ def list_datasets():
         schema=json.loads(row[4])
     ) for row in cursor]
 
+def get_dataset_by_id(dataset_id: str) -> Dataset:
+    '''
+    get_dataset_by_id is a function that gets a dataset by its indivual id, from the metadata database.
+    Args: 
+        dataset_id: str - The id of the dataset to get.
+    returns:
+        Dataset - The dataset object with the given id.
+    '''
+    conn = connect_metadata_db()
+    try:
+        # Create a tuple of the dataset id, so that it can be used in the query. we need the , at the end to make it a tuple.
+        db_tuple = (dataset_id,)
+        cursor = conn.execute(f"SELECT * FROM {METADATA_TABLE} WHERE dataset_id = ?", db_tuple).fetchone()
+    finally:
+        conn.close()
+
+    return Dataset(
+        dataset_id=cursor[0],
+        upload_type=cursor[1],
+        raw_byte_size=cursor[2],
+        tables=json.loads(cursor[3]),
+        schema=json.loads(cursor[4])
+    )
 
 # Potential next functions to add
 # - Save JSON Files
