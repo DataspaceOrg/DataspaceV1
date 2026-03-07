@@ -18,4 +18,6 @@ function App() {
   )
 }
 
+// npm run dev
+
 export default App
