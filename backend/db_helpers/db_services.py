@@ -180,15 +180,16 @@ def get_sample_rows(dataset: Dataset, num_rows: int, table_name: str) -> list[di
     #Initialize duckDB connection.
     conn = duckdb.connect()
     dataset_path = dataset.dataset_path
-    
+
     try:
         if dataset.upload_type == "csv":
             # If csv then we load in the parquet file and return the sample rows. There is only one table in the dataset.
             dataframe = conn.execute("SELECT * FROM read_parquet(?) LIMIT ?", [dataset_path, num_rows]).fetchdf()
 
-        elif dataset.upload_type == "sqlite":
+        # If its a db type then it is an sqlite database. 
+        elif dataset.upload_type == "db":
             # if sqlite then we moust attach the sqlite file into DuckDB and expose it with the name sqlite_db.
-            conn.execute("ATTACH DATABASE ? AS sqlite_db (TYPE sqlite)", [dataset_path])
+            conn.execute(f"ATTACH DATABASE '{dataset_path}' AS sqlite_db (TYPE sqlite)")
             dataframe = conn.execute(f"SELECT * FROM sqlite_db.{table_name} LIMIT ?", [num_rows]).fetchdf()
 
     finally:

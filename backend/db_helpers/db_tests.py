@@ -2,21 +2,31 @@
 from db_helpers.db_services import get_sample_rows
 from db_helpers.db_metadata import list_datasets, get_dataset_by_id
 
+def initalize_test_setup():
+    pass
+
+def remove_test_setup():
+    pass
+
 # Test getting sample rows from the dataset via csv file. 
 def test_get_sample_rows_csv():
     # Example dataset id
-    dataset_id = "d2808899-d2ab-405c-82e0-3e34c5517913"
+    dataset_id = "afeb4a59-0e06-4660-9075-12d1063bc5c7"
     # Retrieve the dataset from the database.
     dataset = get_dataset_by_id(dataset_id)
-
-    print(dataset)
-
     # Get 10 individual sampled rows from the dataset. 
     sample_rows = get_sample_rows(dataset, 1, "creditcard")
     print(sample_rows)
 
 def test_get_sample_rows_sqlite():
-    pass
+    dataset_id = "56af60ba-ba76-4321-bf83-66454d972ff9"
+    dataset = get_dataset_by_id(dataset_id)
+    print(dataset)
+
+    # breakpoint()
+
+    sample_rows = get_sample_rows(dataset, 5, dataset.tables[0])
+    print(sample_rows)
 
 # Test uploading a dataset to the DB and the metadata being saved correctly. 
 def test_upload_dataset():
@@ -28,6 +38,7 @@ def test_get_all_table_names():
 
 
 if __name__ == "__main__":
-    test_get_sample_rows_csv()
+    # test_get_sample_rows_csv()
+    test_get_sample_rows_sqlite()
 
 # python3 -m db_helpers.db_tests
