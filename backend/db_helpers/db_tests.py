@@ -15,7 +15,7 @@ def test_get_sample_rows_csv():
     # Retrieve the dataset from the database.
     dataset = get_dataset_by_id(dataset_id)
     # Get 10 individual sampled rows from the dataset. 
-    sample_rows = get_sample_rows(dataset, 1, "creditcard")
+    sample_rows = get_sample_rows(dataset, 2, "creditcard")
     print(sample_rows)
 
 def test_get_sample_rows_sqlite():
@@ -25,7 +25,7 @@ def test_get_sample_rows_sqlite():
 
     # breakpoint()
 
-    sample_rows = get_sample_rows(dataset, 5, dataset.tables[0])
+    sample_rows = get_sample_rows(dataset, 2, dataset.tables[0])
     print(sample_rows)
 
 # Test uploading a dataset to the DB and the metadata being saved correctly. 
