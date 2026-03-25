@@ -17,3 +17,9 @@ Worked on building the backend for the project by initializing the first AI Agen
 1. Continuing to work on building AI Agent overiview for CSV files. Finishing up initial insight agent. Possibly changing up the system prompt
 2. Working on adding functionality to the frontend and use API to call the insight agent.
 3. Building tests for both the insight agent using CSV and SQLite files. 
+
+## March 23, 2026 
+1. Working on implementing the insight agent for SQLite files.
+
+## March 25, 2026
+1. Insight agent function 

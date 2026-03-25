@@ -28,3 +28,10 @@ POST ai/datasets/{dataset_id}/suggest_queries -> Goes to second agent, takes the
 POST ai/datasets/{dataset_id}/visualize -> Goes to third agent, takes the context and the visualizations.
 POST ai/datasets/{dataset_id}/summary -> Goes to fourth agent, takes the summary and all of its findings via the other agents.
 POST ai/datasets/{dataset_id}/recommendations -> Goes to fifth agent, gives suggestions on how to improve the data, how you can continue to get more insights from the data.
+
+Frontend Login Functionality:
+
+Have dataset metadata stored in metadata.db database. 
+Need user login information to track who is logged in and what datasets they have access to. 
+
+Schema (user_id, email, created_at, datasets_accessable: list[str])
