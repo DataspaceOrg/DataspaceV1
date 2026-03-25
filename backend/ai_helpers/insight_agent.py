@@ -17,6 +17,9 @@ class InsightAgent:
         self.system_prompt = None
         self.formatted_sample_rows = None
 
+        # Retrieve the dataset object to use for the agent. 
+        self.retrieve_dataset()
+
     def run_simple_query(self, query: str):
         client = OpenAI()
 
@@ -70,9 +73,9 @@ class InsightAgent:
                 return str(value)
         return str(value)
 
-    def format_sample_rows_csv(self, sample_rows: list[dict]) -> str:
+    def format_sample_rows(self, sample_rows: list[dict]) -> str:
         '''
-        format rows is a function that formats the sample rows into a string making it easier for Agents to understand and parse information. 
+        format rows is a function that formats the sample rows into a string making it easier for Agents to understand and parse information. Works for both the CSV and SQL Files
         sample_row will be a list of dictionaries. Each dictionary will have the column names as keys and the values as the value for a row of that column.
         Note: Sample rows is currently in the format of [{column_name: value, column_name: value, ...}, {column_name: value, column_name: value, ...}, ...].
         text_block_str should be in the following format:
@@ -127,10 +130,8 @@ class InsightAgent:
         """
 
         self.system_prompt = system_prompt
-        print(self.system_prompt)
-        breakpoint()
 
-    def run_agent(self):
+    def run_agent(self) -> str:
 
         client = OpenAI()
         response = client.chat.completions.create(
@@ -142,29 +143,30 @@ class InsightAgent:
         )
         return response.choices[0].message.content
 
-    def run_full_agent(self, dataset_id: str, table_name: str):
-
-        dataset = self.retrieve_dataset()
+    def run_full_agent(self, dataset_id: str, table_name: str) -> str:
 
         if dataset.upload_type == "csv":
             sample_rows = self.retrieve_sample_rows(table_name)
-            self.formatted_sample_rows = self.format_sample_rows_csv(sample_rows)
+            self.formatted_sample_rows = self.format_sample_rows(sample_rows)
             self.build_system_prompt()
             return self.run_agent()
 
-        # Working on implementation. 
+        # Format sample rows works for both types, currently differentiating in case of errors. 
         elif dataset.upload_type == "db":
-            pass
+            sample_rows = self.retrieve_sample_rows(table_name)
+            self.formatted_sample_rows = self.format_sample_rows(sample_rows)
+            self.build_system_prompt()
+            return self.run_agent()
 
 if __name__ == "__main__":
-    # insight_agent = InsightAgent("d2808899-d2ab-405c-82e0-3e34c5517913")
 
-    # insight_agent.retrieve_dataset()
-    # insight_agent.retrieve_sample_rows("ins_feat")
-    # insight_agent.build_system_prompt()
+    # response1 = InsightAgent("d2808899-d2ab-405c-82e0-3e34c5517913").run_full_agent("d2808899-d2ab-405c-82e0-3e34c5517913", "ins_feat")
+    # print(response1)
+    # response2 = InsightAgent("56af60ba-ba76-4321-bf83-66454d972ff9").run_full_agent("56af60ba-ba76-4321-bf83-66454d972ff9", "customers")
+    # print(response2)
 
-    response1 = InsightAgent("d2808899-d2ab-405c-82e0-3e34c5517913").run_full_agent("d2808899-d2ab-405c-82e0-3e34c5517913", "ins_feat")
-    print(response1)
+    insight_agent = InsightAgent("d2808899-d2ab-405c-82e0-3e34c5517913")
+    
 
 
 # python3 -m ai_helpers.insight_agent

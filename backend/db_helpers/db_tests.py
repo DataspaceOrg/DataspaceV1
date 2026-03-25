@@ -23,8 +23,6 @@ def test_get_sample_rows_sqlite():
     dataset = get_dataset_by_id(dataset_id)
     print(dataset)
 
-    # breakpoint()
-
     sample_rows = get_sample_rows(dataset, 2, dataset.tables[0])
     print(sample_rows)
 
@@ -36,9 +34,8 @@ def test_upload_dataset():
 def test_get_all_table_names():
     pass
 
-
 if __name__ == "__main__":
-    test_get_sample_rows_csv()
-    # test_get_sample_rows_sqlite()
+    # test_get_sample_rows_csv()
+    test_get_sample_rows_sqlite()
 
 # python3 -m db_helpers.db_tests
