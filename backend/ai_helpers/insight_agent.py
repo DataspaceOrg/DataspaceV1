@@ -145,14 +145,16 @@ class InsightAgent:
 
     def run_full_agent(self, dataset_id: str, table_name: str) -> str:
 
-        if dataset.upload_type == "csv":
+
+
+        if self.dataset.upload_type == "csv":
             sample_rows = self.retrieve_sample_rows(table_name)
             self.formatted_sample_rows = self.format_sample_rows(sample_rows)
             self.build_system_prompt()
             return self.run_agent()
 
         # Format sample rows works for both types, currently differentiating in case of errors. 
-        elif dataset.upload_type == "db":
+        elif self.dataset.upload_type == "db":
             sample_rows = self.retrieve_sample_rows(table_name)
             self.formatted_sample_rows = self.format_sample_rows(sample_rows)
             self.build_system_prompt()
@@ -162,10 +164,9 @@ if __name__ == "__main__":
 
     # response1 = InsightAgent("d2808899-d2ab-405c-82e0-3e34c5517913").run_full_agent("d2808899-d2ab-405c-82e0-3e34c5517913", "ins_feat")
     # print(response1)
-    # response2 = InsightAgent("56af60ba-ba76-4321-bf83-66454d972ff9").run_full_agent("56af60ba-ba76-4321-bf83-66454d972ff9", "customers")
-    # print(response2)
+    response2 = InsightAgent("56af60ba-ba76-4321-bf83-66454d972ff9").run_full_agent("56af60ba-ba76-4321-bf83-66454d972ff9", "customers")
+    print(response2)
 
-    insight_agent = InsightAgent("d2808899-d2ab-405c-82e0-3e34c5517913")
     
 
 

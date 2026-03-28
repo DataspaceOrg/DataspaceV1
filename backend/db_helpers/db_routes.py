@@ -72,7 +72,9 @@ def upload_db(file: UploadFile = File(...)) -> dict:
         # If its a SQL db, save the raw db file, and then retrieve the tables and schema for metadata.
         raw_path, raw_size = save_raw_file(dataset_dir, file)
         table_names = get_sqlite_table_names(raw_path)
-        tables = {name: str(raw_path) for name in table_names}
+
+    
+        # tables = {name: str(raw_path) for name in table_names}
         schema = get_sqlite_schema(raw_path)
 
         new_dataset = Dataset(

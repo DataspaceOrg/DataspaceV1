@@ -8,7 +8,6 @@ from .db_constants import Dataset
 from db_helpers.db_constants import DATA_ROOT, METADATA_DB, METADATA_TABLE
 from fastapi import UploadFile
 
-##
 '''
 db_services.py is a module that contains the functions to interact with the database services.
 This is different from the db_metadata which contains the functions to interact with the metadata database.
@@ -195,8 +194,7 @@ def get_sample_rows(dataset: Dataset, num_rows: int, table_name: str) -> list[di
     finally:
         conn.close()
 
-    return dataframe.to_dict(orient="records")
-    
+    return dataframe.to_dict(orient="records")    
 
 # Potential next functions to add
 # - Save JSON Files
