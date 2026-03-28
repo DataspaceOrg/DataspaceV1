@@ -20,7 +20,7 @@ def read_root():
     # Return a JSON response to the frontend
     return {"message": "Welcome to the DB Helper API"}
 
-@router.get("/dataset/{dataset_id}")
+@router.get("/datasets/{dataset_id}")
 def get_dataset_route(dataset_id: str) -> Dataset:
     '''
     Get dataset is a service that allows for the frontend to get a dataset by its id.
