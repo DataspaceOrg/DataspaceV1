@@ -11,7 +11,7 @@ def read_root():
     return {"message": "Welcome to the AI API"}
 
 # get_insight is a synchronous function as the insight is needed before being able to chain next steps.
-@router.get("/dataset/{dataset_id}/insight")
+@router.post("/dataset/{dataset_id}/insight")
 def get_insight(dataset_id: str, table_name: str):
     '''
     Get insight is a service that allows for the frontend to get an immediate insight of the data.

@@ -25,22 +25,21 @@ function Sidebar() {
         <NavLink to="/" className="sidebar-logo-link">
           <img src={dataspaceImage} alt="Dataspace" className="sidebar-logo" />
         </NavLink>
-        <button
-          className="collapse-button"
-          onClick={toggleSidebar}
-          title={isCollapsed ? 'Expand' : 'Collapse'}
-        >
+        <button className="collapse-button" onClick={toggleSidebar} title={isCollapsed ? 'Expand' : 'Collapse'} >
           <FiChevronLeft className="collapse-icon" style={{ transform: isCollapsed ? 'rotate(180deg)' : 'rotate(0deg)' }} />
         </button>
       </div>
 
       <nav className="sidebar-nav">
+
+        {/* Dashboard - navigates to dashboard page */}
+        <NavLink to="/dashboard" className={({ isActive }) => `sidebar-button ${isActive ? 'active' : ''}`} title="Dashboard">
+          {/* <FiLayoutDashboard className="sidebar-icon" /> */}
+          <span className="sidebar-label">Dashboard</span>
+        </NavLink>
+
         {/* Upload - navigates to upload page */}
-        <NavLink
-          to="/upload"
-          className={({ isActive }) => `sidebar-button ${isActive ? 'active' : ''}`}
-          title="Upload Files"
-        >
+        <NavLink to="/upload" className={({ isActive }) => `sidebar-button ${isActive ? 'active' : ''}`} title="Upload Files">
           <FiUpload className="sidebar-icon" />
           <span className="sidebar-label">Upload</span>
         </NavLink>
@@ -54,6 +53,7 @@ function Sidebar() {
           <FiSettings className="sidebar-icon" />
           <span className="sidebar-label">Settings</span>
         </button>
+        
       </nav>
     </div>
   )

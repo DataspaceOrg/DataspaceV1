@@ -21,5 +21,5 @@ Worked on building the backend for the project by initializing the first AI Agen
 ## March 23, 2026 
 1. Working on implementing the insight agent for SQLite files.
 
-## March 25, 2026
-1. Insight agent function 
+## March 27, 2026
+- Working on testing dataspace to ensure that the data outputs are as expected. 
