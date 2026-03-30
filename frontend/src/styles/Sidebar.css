@@ -112,7 +112,6 @@
 
 .sidebar-button.active {
   background-color: var(--ds-primary);
-  color: white;
 }
 
 .sidebar-button.active:hover {

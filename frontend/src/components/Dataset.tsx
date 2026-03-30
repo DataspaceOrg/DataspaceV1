@@ -9,6 +9,7 @@ function Dataset() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [insightMessage, setInsightMessage] = useState<string | null>(null);
+    const [selectedTable, setSelectedTable] = useState<string | null>(null);
 
 
     useEffect(() => {
@@ -26,7 +27,9 @@ function Dataset() {
                 const dataset = await fetchDatasetById(datasetId);
                 if (!cancelled) {
                     setDataset(dataset);
-                }
+                    // Set the first table as the selected table by default.
+                    setSelectedTable(dataset.tables[0] ?? null);
+                  }
             } catch (err) {
                 if (!cancelled) {
                     setError(err instanceof Error ? err.message : 'An unknown error occurred');
@@ -48,8 +51,15 @@ function Dataset() {
     if (error) return <div className="dataset-page">Error: {error}</div>;
 
     const handleInsightClick = () => {
-        setInsightMessage('Insight agent UI added. API integration is the next step.');
+        if (!selectedTable) {
+            setInsightMessage('Select a table before running the insight agent.');
+            return;
+        }
+
+        setInsightMessage(`Insight agent UI ready for "${selectedTable}". API integration is the next step.`);
     };
+
+    const selectedTableSchema = selectedTable ? dataset?.schema?.[selectedTable] ?? null : null;
 
     return (    
         <div className="dataset-page">
@@ -62,24 +72,21 @@ function Dataset() {
 
                 <div className="dataset-hero-top">
                     <div className="dataset-title-group">
-                        <p className="dataset-eyebrow">Dataset Details</p>
-                        <h1 className="dataset-title">{dataset?.dataset_id}</h1>
-                        <p className="dataset-subtitle">
-                            Review the uploaded dataset, inspect its tables, and launch agent workflows.
-                        </p>
+                        <p className="dataset-name">Dataset Details</p>
                     </div>
 
                     <div className="dataset-actions">
                         <button className="dataset-button dataset-button-secondary" onClick={() => window.location.reload()}>
                             Refresh Dataset
                         </button>
-                        <button className="dataset-button dataset-button-primary" onClick={handleInsightClick}>
-                            Run Insight Agent
-                        </button>
                     </div>
                 </div>
 
                 <div className="dataset-summary-grid">
+                     <section className="dataset-summary-card">
+                        <p className="dataset-summary-label">Dataset Name</p>
+                        <p className="dataset-summary-value dataset-code-text">[Placeholder Name]</p>
+                    </section>
                     <section className="dataset-summary-card">
                         <p className="dataset-summary-label">Upload Type</p>
                         <p className="dataset-summary-value">{dataset?.upload_type}</p>
@@ -92,20 +99,63 @@ function Dataset() {
 
                     <section className="dataset-summary-card">
                         <p className="dataset-summary-label">Table Count</p>
+                        {/* If dataset is null, return 0 for size. */}
                         <p className="dataset-summary-value">{dataset?.tables?.length ?? 0}</p>
                     </section>
 
-                    <section className="dataset-summary-card">
+                    {/* <section className="dataset-summary-card">
                         <p className="dataset-summary-label">Dataset Path</p>
                         <p className="dataset-summary-value dataset-code-text">{dataset?.dataset_path}</p>
-                    </section>
+                    </section> */}
                 </div>
-
-                {insightMessage && <p className="dataset-status-banner">{insightMessage}</p>}
             </header>
 
+            <section className="dataset-panel dataset-panel-full">
+                <section className="dataset-panel dataset-panel-full">
+                    <div className="dataset-panel-header">
+                        <div>
+                            <p className="dataset-panel-kicker">Schema</p>
+                            <h2 className="dataset-panel-title">
+                                {selectedTable ? `${selectedTable} Schema` : 'Dataset Schema'}
+                            </h2>
+                        </div>
+                    </div>
+
+                    <pre className="dataset-schema-block">
+                        {JSON.stringify(selectedTableSchema ?? dataset?.schema ?? {}, null, 2)}
+                    </pre>
+                </section>
+
+                <div className="dataset-panel-header">
+                    <div>
+                        <p className="dataset-panel-kicker">Tables</p>
+                        <h2 className="dataset-panel-title">Choose a table to explore</h2>
+                    </div>
+                </div>
+
+                <div className="dataset-table-tabs">
+                    {(dataset?.tables ?? []).map((tableName) => (
+                        <button
+                            key={tableName}
+                            type="button"
+                            className={
+                                tableName === selectedTable
+                                    ? 'dataset-table-tab dataset-table-tab-active'
+                                    : 'dataset-table-tab'
+                            }
+                            onClick={() => setSelectedTable(tableName)}
+                        >
+                            <span className="dataset-table-tab-name dataset-code-text">{tableName}</span>
+                            <span className="dataset-table-tab-meta">
+                                {tableName === selectedTable ? 'Active table' : 'Open workspace'}
+                            </span>
+                        </button>
+                    ))}
+                </div>
+            </section>
+
             <main className="dataset-layout-grid">
-                <section className="dataset-panel">
+                {/* <section className="dataset-panel">
                     <div className="dataset-panel-header">
                         <div>
                             <p className="dataset-panel-kicker">Overview</p>
@@ -134,37 +184,43 @@ function Dataset() {
                             <p className="dataset-detail-value">{dataset?.raw_byte_size} bytes</p>
                         </div>
                     </div>
-                </section>
-
+                </section> */}
                 <section className="dataset-panel">
+                    {/* Table Tabs */}
                     <div className="dataset-panel-header">
                         <div>
-                            <p className="dataset-panel-kicker">Tables</p>
-                            <h2 className="dataset-panel-title">Available Tables</h2>
+                            <p className="dataset-panel-kicker">Workspace</p>
+                            <h2 className="dataset-panel-title">
+                                {selectedTable ? `Table Workspace: ${selectedTable}` : 'Select a table'}
+                            </h2>
                         </div>
                     </div>
 
-                    <div className="dataset-table-list">
-                        {(dataset?.tables ?? []).map((t) => (
-                            <div key={t} className="dataset-table-item">
-                                <div>
-                                    <p className="dataset-table-name dataset-code-text">{t}</p>
-                                    <p className="dataset-table-description">Ready for exploration and downstream agent analysis.</p>
+                    <div className="dataset-workspace-panel">
+                        <p className="dataset-workspace-text">
+                            Use this area for your five-step prompt flow. Each table can have its own workflow state.
+                        </p>
+
+                        <div className="dataset-workspace-current-table">
+                            <p className="dataset-workspace-label">Current table</p>
+                            <p className="dataset-workspace-value dataset-code-text">
+                                {selectedTable ?? 'No table selected'}
+                            </p>
+                        </div>
+
+                        <div className="dataset-workflow-steps">
+                            {[1, 2, 3, 4, 5].map((step) => (
+                                <div key={step} className="dataset-workflow-step">
+                                    <span className="dataset-workflow-step-number">{step}</span>
+                                    <span className="dataset-workflow-step-label">Prompt step {step}</span>
                                 </div>
-                            </div>
-                        ))}
-                    </div>
-                </section>
-
-                <section className="dataset-panel dataset-panel-full">
-                    <div className="dataset-panel-header">
-                        <div>
-                            <p className="dataset-panel-kicker">Schema</p>
-                            <h2 className="dataset-panel-title">Dataset Schema</h2>
+                            ))}
                         </div>
-                    </div>
 
-                    <pre className="dataset-schema-block">{JSON.stringify(dataset?.schema ?? {}, null, 2)}</pre>
+                        <button className="dataset-button dataset-button-primary" onClick={handleInsightClick}>
+                            Run Insight Agent
+                        </button>
+                    </div>
                 </section>
             </main>
         </div>
