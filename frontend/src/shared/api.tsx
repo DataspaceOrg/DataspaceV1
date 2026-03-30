@@ -27,6 +27,7 @@ export async function fetchDatasets(): Promise<Dataset[]> {
 
 export async function fetchDatasetById(dataset_id: string): Promise<Dataset> {
     const response = await fetch(`${API_BASE}/db/datasets/${dataset_id}`);
+    // const response = await fetch(`${API_BASE}/db/dataset/${encodeURIComponent(dataset_id)}`);
 
     if (!response.ok) {
         throw new Error(`Failed to fetch dataset: ${response.statusText}`);

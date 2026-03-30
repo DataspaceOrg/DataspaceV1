@@ -23,3 +23,9 @@ Worked on building the backend for the project by initializing the first AI Agen
 
 ## March 27, 2026
 - Working on testing dataspace to ensure that the data outputs are as expected. 
+- Built test files for SQL Dataset model and SQL retrieving rows from db for Insight agent.
+- Built Initial AJAX fetch requests in the frontend for both Dashboard and Individual Dataset pages.
+
+## March 30, 2026
+- Working on the dataset page to query the insight agent and display the results. 
+- Need to also add a name to the dataset. 

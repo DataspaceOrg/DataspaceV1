@@ -5,8 +5,8 @@
   width: 25rem;
   /* For now height will be 100vh */
   height: 100vh;
-  background-color: #f5f5f5;
-  border-right: 1px solid #e0e0e0;
+  background-color: var(--ds-surface-2);
+  border-right: 1px solid var(--ds-border);
   padding: 1.5rem 0;
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.08);
   transition: width 0.4s ease;
@@ -111,12 +111,12 @@
 }
 
 .sidebar-button.active {
-  background-color: #4a90e2;
+  background-color: var(--ds-primary);
   color: white;
 }
 
 .sidebar-button.active:hover {
-  background-color: #357abd;
+  background-color: var(--ds-primary-hover);
 }
 
 .sidebar.collapsed .sidebar-button {
@@ -130,7 +130,7 @@
 
 /* Icons */
 .sidebar-icon {
-  font-size: rem;
+  font-size: 1.8rem;
   min-width: 1.5rem;
   flex-shrink: 0;
 }

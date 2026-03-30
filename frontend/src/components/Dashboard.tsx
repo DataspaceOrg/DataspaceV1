@@ -9,16 +9,12 @@ function Dashboard() {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
+        let cancelled = false;
         async function fetchData() {
-            // If the component is unmounted (eg user navigates away from the page), we need to stop any components
-            // from being updated. Cancelled eans when cleanup runs (i.e. when the component is unmounted). flip a switch to not call setSate
-            let cancelled = false;
-
             try {
                 const datasets = await fetchDatasets(); 
                 if (!cancelled) {
                     setDatasets(datasets);
-                    setLoading(false);
                 }
             } catch (err) {
                 if (!cancelled) {
@@ -32,14 +28,13 @@ function Dashboard() {
         }
 
         fetchData()
+        return () => {
+            cancelled = true;
+        }
     }, []);
 
-    // if (loading) {
-    //     return <div>Loading...</div>;
-    // }
-    // if (error) {
-    //     return <div>Error: {error}</div>;
-    // }
+    if (loading) return <div className="dashboard-container">Loading…</div>;
+    if (error) return <div className="dashboard-container">Error: {error}</div>;
 
     return (
         <div className="dashboard-container">

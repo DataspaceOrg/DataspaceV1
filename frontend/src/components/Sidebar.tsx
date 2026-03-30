@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
-import { FiUpload, FiSettings, FiChevronLeft } from 'react-icons/fi'
+import { FiGrid, FiUpload, FiSettings, FiChevronLeft } from 'react-icons/fi'
 import dataspaceImage from '../images/Dataspace.png'
 import '../styles/Sidebar.css'
 
@@ -34,7 +34,7 @@ function Sidebar() {
 
         {/* Dashboard - navigates to dashboard page */}
         <NavLink to="/dashboard" className={({ isActive }) => `sidebar-button ${isActive ? 'active' : ''}`} title="Dashboard">
-          {/* <FiLayoutDashboard className="sidebar-icon" /> */}
+          <FiGrid className="sidebar-icon" />
           <span className="sidebar-label">Dashboard</span>
         </NavLink>
 
