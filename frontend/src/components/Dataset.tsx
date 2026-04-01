@@ -51,6 +51,12 @@ function Dataset() {
     if (error) return <div className="dataset-page">Error: {error}</div>;
 
     const handleInsightClick = () => {
+        /* 
+        handleInsightClick is a function that is used to run the insight agent for the selected table. 
+        It will call the API to run the insight agent and update the state with the result.
+        */
+
+        // If there is no table selected then set the insight message to ask for a table to be selected. 
         if (!selectedTable) {
             setInsightMessage('Select a table before running the insight agent.');
             return;
@@ -59,6 +65,7 @@ function Dataset() {
         setInsightMessage(`Insight agent UI ready for "${selectedTable}". API integration is the next step.`);
     };
 
+    // Set the schema of the selected table. dataset?.schema?.[selectedTable] checks if there is an existing schema, if its null then return null. 
     const selectedTableSchema = selectedTable ? dataset?.schema?.[selectedTable] ?? null : null;
 
     return (    
@@ -76,6 +83,7 @@ function Dataset() {
                     </div>
 
                     <div className="dataset-actions">
+                        {/* Refresh the dataset page. */}
                         <button className="dataset-button dataset-button-secondary" onClick={() => window.location.reload()}>
                             Refresh Dataset
                         </button>
@@ -134,17 +142,21 @@ function Dataset() {
                 </div>
 
                 <div className="dataset-table-tabs">
+                    {/* Loop through all the tables in the total dataset and then map them to tab elements.  */}
                     {(dataset?.tables ?? []).map((tableName) => (
                         <button
                             key={tableName}
                             type="button"
                             className={
+                                // If the table name is the same as the selected table then set the class to the active tab.
                                 tableName === selectedTable
                                     ? 'dataset-table-tab dataset-table-tab-active'
                                     : 'dataset-table-tab'
                             }
+                            // On the click set the selected table to the table name from the dataset.tables array.
                             onClick={() => setSelectedTable(tableName)}
                         >
+                            {/* Display the table name. */}
                             <span className="dataset-table-tab-name dataset-code-text">{tableName}</span>
                             <span className="dataset-table-tab-meta">
                                 {tableName === selectedTable ? 'Active table' : 'Open workspace'}
@@ -155,36 +167,6 @@ function Dataset() {
             </section>
 
             <main className="dataset-layout-grid">
-                {/* <section className="dataset-panel">
-                    <div className="dataset-panel-header">
-                        <div>
-                            <p className="dataset-panel-kicker">Overview</p>
-                            <h2 className="dataset-panel-title">Dataset Information</h2>
-                        </div>
-                    </div>
-
-                    <div className="dataset-detail-list">
-                        <div className="dataset-detail-row">
-                            <p className="dataset-detail-label">Dataset ID</p>
-                            <p className="dataset-detail-value dataset-code-text">{dataset?.dataset_id}</p>
-                        </div>
-
-                        <div className="dataset-detail-row">
-                            <p className="dataset-detail-label">Storage Path</p>
-                            <p className="dataset-detail-value dataset-code-text">{dataset?.dataset_path}</p>
-                        </div>
-
-                        <div className="dataset-detail-row">
-                            <p className="dataset-detail-label">Upload Type</p>
-                            <p className="dataset-detail-value">{dataset?.upload_type}</p>
-                        </div>
-
-                        <div className="dataset-detail-row">
-                            <p className="dataset-detail-label">Raw Byte Size</p>
-                            <p className="dataset-detail-value">{dataset?.raw_byte_size} bytes</p>
-                        </div>
-                    </div>
-                </section> */}
                 <section className="dataset-panel">
                     {/* Table Tabs */}
                     <div className="dataset-panel-header">
@@ -197,10 +179,6 @@ function Dataset() {
                     </div>
 
                     <div className="dataset-workspace-panel">
-                        <p className="dataset-workspace-text">
-                            Use this area for your five-step prompt flow. Each table can have its own workflow state.
-                        </p>
-
                         <div className="dataset-workspace-current-table">
                             <p className="dataset-workspace-label">Current table</p>
                             <p className="dataset-workspace-value dataset-code-text">
@@ -209,17 +187,28 @@ function Dataset() {
                         </div>
 
                         <div className="dataset-workflow-steps">
-                            {[1, 2, 3, 4, 5].map((step) => (
+                            <div key={1} className="dataset-workflow-step">
+                                <div>
+                                    <span className="dataset-workflow-step-number">1</span>
+                                    <span className="dataset-workflow-step-label">Prompt step: Insight Agent</span>
+                                </div>
+                                <p>The insight agent will be used to get a quick overview of the data on the current selected table: {selectedTable}</p>
+
+                                {/* Run the insight agent. */}
+                                <div className="dataset-workflow-step-button">
+                                <button className="dataset-button dataset-button-primary" onClick={handleInsightClick}>
+                                Run Insight Agent
+                                </button>
+                                </div>
+                            </div>
+
+                            {/* {[1, 2, 3, 4, 5].map((step) => (
                                 <div key={step} className="dataset-workflow-step">
                                     <span className="dataset-workflow-step-number">{step}</span>
                                     <span className="dataset-workflow-step-label">Prompt step {step}</span>
                                 </div>
-                            ))}
+                            ))} */}
                         </div>
-
-                        <button className="dataset-button dataset-button-primary" onClick={handleInsightClick}>
-                            Run Insight Agent
-                        </button>
                     </div>
                 </section>
             </main>

@@ -353,7 +353,7 @@
 
 .dataset-workflow-step {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 1.2rem;
   padding: 1.2rem 1.4rem;
   border-radius: 1.2rem;
@@ -395,6 +395,11 @@
 /* Shared helper for ids/paths/code-like values */
 .dataset-code-text {
   font-family: var(--ds-font-mono);
+}
+
+.dataset-workflow-step-button {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
 }
 
 /* Responsive */

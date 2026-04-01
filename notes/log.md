@@ -29,3 +29,6 @@ Worked on building the backend for the project by initializing the first AI Agen
 ## March 30, 2026
 - Working on the dataset page to query the insight agent and display the results. 
 - Need to also add a name to the dataset. 
+
+## April 1, 2026
+- Make some frontend fixes and work on css/html clarity.
