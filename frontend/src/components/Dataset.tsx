@@ -1,4 +1,4 @@
-import { fetchDatasetById, type Dataset as DatasetModel } from '../shared/api';
+import { fetchDatasetById, type Dataset as DatasetModel, queryInsightAgent } from '../shared/api';
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import '../styles/Dataset.css';
@@ -50,7 +50,7 @@ function Dataset() {
     if (loading) return <div className="dataset-page">Loading…</div>;
     if (error) return <div className="dataset-page">Error: {error}</div>;
 
-    const handleInsightClick = () => {
+    const handleInsightClick = async () => {
         /* 
         handleInsightClick is a function that is used to run the insight agent for the selected table. 
         It will call the API to run the insight agent and update the state with the result.
@@ -62,7 +62,19 @@ function Dataset() {
             return;
         }
 
-        setInsightMessage(`Insight agent UI ready for "${selectedTable}". API integration is the next step.`);
+        if (!dataset_id) {
+            setError('Dataset ID is required');
+            return;
+        }
+
+        try {
+            const response = await queryInsightAgent(dataset_id, selectedTable);
+            setInsightMessage(response.insight_response);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'An unknown error occurred');
+        }
+
+
     };
 
     // Set the schema of the selected table. dataset?.schema?.[selectedTable] checks if there is an existing schema, if its null then return null. 
@@ -196,6 +208,7 @@ function Dataset() {
 
                                 {/* Run the insight agent. */}
                                 <div className="dataset-workflow-step-button">
+                                <p>{insightMessage}</p>
                                 <button className="dataset-button dataset-button-primary" onClick={handleInsightClick}>
                                 Run Insight Agent
                                 </button>

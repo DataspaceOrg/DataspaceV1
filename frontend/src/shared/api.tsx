@@ -11,6 +11,11 @@ export type Dataset = {
     schema: Record<string, Record<string, string>>;
 }
 
+type InsightResponse = {
+    message: string;
+    insight_response: string;
+};
+
 
 export async function fetchDatasets(): Promise<Dataset[]> {
 
@@ -34,5 +39,20 @@ export async function fetchDatasetById(dataset_id: string): Promise<Dataset> {
     }
 
     const data = await response.json();
+    return data;
+}
+
+export async function queryInsightAgent(dataset_id: string, table_name: string): Promise<InsightResponse> {
+    const response = await fetch(`${API_BASE}/ai/dataset/${dataset_id}/insight?table_name=${table_name}`,
+        {
+            method: 'POST',
+        }
+    );
+
+    if (!response.ok) {
+        throw new Error(`Failed to run insight agent: ${response.statusText}`);
+    }
+
+    const data = await response.json()
     return data;
 }

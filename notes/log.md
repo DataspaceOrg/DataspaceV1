@@ -32,3 +32,6 @@ Worked on building the backend for the project by initializing the first AI Agen
 
 ## April 1, 2026
 - Make some frontend fixes and work on css/html clarity.
+- Added the calling of the insight_agent. Added a queryInsightAgent api function which calls the endpoint in the backend.
+- Added a struct obejct representing the response from the insight agent. 
+- Note: When this is returned, python returns it as a dictionary, but over the rest framework it is converted and sent as a JSON object.
