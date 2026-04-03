@@ -35,3 +35,7 @@ Worked on building the backend for the project by initializing the first AI Agen
 - Added the calling of the insight_agent. Added a queryInsightAgent api function which calls the endpoint in the backend.
 - Added a struct obejct representing the response from the insight agent. 
 - Note: When this is returned, python returns it as a dictionary, but over the rest framework it is converted and sent as a JSON object.
+
+## April 2, 2026
+- Working on fixing the agent for .db files.
+- Idea for the next agent aggregation testing, we can have markdown formatting returned to the user but JSON tables for the next model to take in.

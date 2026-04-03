@@ -19,7 +19,7 @@ def get_insight(dataset_id: str, table_name: str) -> dict[str, str]:
     '''
 
     insight_agent = InsightAgent(dataset_id)
-    insight_response = insight_agent.run_full_agent(dataset_id, table_name)
+    insight_response = insight_agent.run_full_agent(table_name)
 
     # Note: When this is returned, python returns it as a dictionary, but over the rest framework it is converted and sent as a JSON object.
     return {"message": "Insight retrieved successfully", "insight_response": insight_response}

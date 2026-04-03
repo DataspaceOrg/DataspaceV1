@@ -143,9 +143,7 @@ class InsightAgent:
         )
         return response.choices[0].message.content
 
-    def run_full_agent(self, dataset_id: str, table_name: str) -> str:
-
-
+    def run_full_agent(self, table_name: str) -> str:
 
         if self.dataset.upload_type == "csv":
             sample_rows = self.retrieve_sample_rows(table_name)

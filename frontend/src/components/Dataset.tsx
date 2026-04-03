@@ -202,25 +202,33 @@ function Dataset() {
                             <div key={1} className="dataset-workflow-step">
                                 <div>
                                     <span className="dataset-workflow-step-number">1</span>
-                                    <span className="dataset-workflow-step-label">Prompt step: Insight Agent</span>
+                                    <span className="dataset-workflow-step-label">Step 1: Initial Insight</span>
                                 </div>
-                                <p>The insight agent will be used to get a quick overview of the data on the current selected table: {selectedTable}</p>
+                                <p>An Initial insight gaining information about your database will be run on: {selectedTable}</p>
 
                                 {/* Run the insight agent. */}
                                 <div className="dataset-workflow-step-button">
-                                <p>{insightMessage}</p>
-                                <button className="dataset-button dataset-button-primary" onClick={handleInsightClick}>
-                                Run Insight Agent
-                                </button>
+                                    <button className="dataset-button dataset-button-primary" onClick={handleInsightClick}>
+                                    Run Insight Agent
+                                    </button>
                                 </div>
+                                {insightMessage && <div className="agent-output-card">
+                                        {/* Pre for markdown rendering.  */}
+                                        <pre className="agent-markdown-render">{insightMessage}</pre>
+                                 </div>}
                             </div>
-
-                            {/* {[1, 2, 3, 4, 5].map((step) => (
-                                <div key={step} className="dataset-workflow-step">
-                                    <span className="dataset-workflow-step-number">{step}</span>
-                                    <span className="dataset-workflow-step-label">Prompt step {step}</span>
+                            {insightMessage && <div key={2} className="dataset-workflow-step">
+                                <div>
+                                    <span className="dataset-workflow-step-number">2</span>
+                                    <span className="dataset-workflow-step-label">Step 2: Aggegration Creator</span>
                                 </div>
-                            ))} */}
+                                <p>Aggegration Creator will create a series of aggregations on initial insights and run them to gain more information about your dataset</p>
+                                <div className="dataset-workflow-step-button">
+                                    <button className="dataset-button dataset-button-primary" onClick={handleInsightClick}>
+                                    Run Aggegration Creator
+                                    </button>
+                                </div>
+                            </div>}
                         </div>
                     </div>
                 </section>

@@ -402,6 +402,20 @@
   grid-template-columns: 1fr 1fr 1fr;
 }
 
+.agent-output-card {
+  background-color: #0f172a;
+  color: white;
+  padding: 1.2rem;
+  border-radius: 0.8rem;
+  display: flex;
+  height: 20vh;
+  font-size: 1.6rem;
+  overflow-y: auto;
+  max-height: 32rem;
+  
+
+}
+
 /* Responsive */
 @media (max-width: 1100px) {
   .dataset-summary-grid {
