@@ -39,3 +39,14 @@ Worked on building the backend for the project by initializing the first AI Agen
 ## April 2, 2026
 - Working on fixing the agent for .db files.
 - Idea for the next agent aggregation testing, we can have markdown formatting returned to the user but JSON tables for the next model to take in.
+
+## April 29, 2026
+- Its been a while. Been busy with school finishing up. 
+- Need to add a dataset name to the backend model. 
+- Need to add a saving feature for each step to the backend.
+- Fixed frontend issues for outputting in a dataset. 
+
+- Idea: Creating a seperate table for agent workflow session, and workflow results. 
+- Keep database as SQL as we have many workflow sessions and many steps with timesteps and entries. 
+- workflow_sessions table: session_id, dataset_id, table_name, current_step, status, created_at, updated_at
+- workflow_steps table: 

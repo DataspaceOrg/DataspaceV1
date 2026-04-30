@@ -114,7 +114,7 @@ class InsightAgent:
         system_prompt = f"""
         System: “You are a data analyst. Given the dataset metadata, schema, and sample rows below, 
         write a short overview: what the dataset is about, what the main columns mean, 
-        and 2–3 brief insights from the sample.
+        and 2-3 brief insights from the sample.
 
         ## Dataset metadata:
         - dataset_id: {self.dataset.dataset_id}
