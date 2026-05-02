@@ -48,5 +48,9 @@ Worked on building the backend for the project by initializing the first AI Agen
 
 - Idea: Creating a seperate table for agent workflow session, and workflow results. 
 - Keep database as SQL as we have many workflow sessions and many steps with timesteps and entries. 
-- workflow_sessions table: session_id, dataset_id, table_name, current_step, status, created_at, updated_at
-- workflow_steps table: 
+- agent_session table: session_id, dataset_id, table_name, current_step, status, created_at, updated_at
+- agent_queries table: step_id, session_id, step_number, prompt_input, response_output, created_at 
+
+## May 2,2026
+- Creating the agent_session table and the agent_queries table. 
+- Built functions to create, update, and get agent sessions.
