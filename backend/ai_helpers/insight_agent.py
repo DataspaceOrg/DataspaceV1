@@ -3,9 +3,11 @@ import os
 from db_helpers.db_services import get_sample_rows
 from db_helpers.db_metadata import get_dataset_by_id
 from db_helpers.db_agent_session import create_agent_session, update_agent_session, get_agent_session
+from db_helpers.db_agent_queries import create_agent_query, get_agent_query, agent_query_history
 from openai import OpenAI
 import logging
 import dotenv
+from datetime import datetime
 
 # Currently use 
 dotenv.load_dotenv()
@@ -17,6 +19,8 @@ class InsightAgent:
         self.sample_rows = None
         self.system_prompt = None
         self.formatted_sample_rows = None
+        self.session_id = None
+        self.step_id = None
 
         # Retrieve the dataset object to use for the agent. 
         self.retrieve_dataset()
@@ -142,15 +146,19 @@ class InsightAgent:
                 {"role": "user", "content": "Write a short overview of what the dataset is about, what the main columns mean, and 2–3 brief insights from the sample."}
             ]
         )
+
+        # Create a query for the agent query, user input prompt is temporary.
+        self.step_id = create_agent_query(self.session_id, "insight", "temporary_prompt", response.choices[0].message.content, datetime.now().isoformat())
+        breakpoint()
         return response.choices[0].message.content
 
     def run_full_agent(self, table_name: str) -> str:
 
         # Create a session for the agent on the first step.
         # Edge case for if one exists. 
-        session_id = create_agent_session(self.dataset_id, table_name, "insight")
+        self.session_id = create_agent_session(self.dataset_id, table_name, "insight")
 
-        if session_id is None:
+        if self.session_id is None:
             raise ValueError("Failed to create agent session.")
 
         if self.dataset.upload_type == "csv":

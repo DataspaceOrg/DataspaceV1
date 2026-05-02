@@ -51,5 +51,15 @@ class AgentSession(BaseModel):
     created_at: str
     updated_at: str
 
+class AgentQuery(BaseModel):
+  '''
+  AgentQuery is a model that represents the agent query of a dataset that gets uploaded to the database.
+  '''
+  step_id: str
+  session_id: str
+  agent_step: str
+  prompt_input: str
+  response_output: str
+  created_at: str
 
 # python3 -m db_helpers.db_constants
