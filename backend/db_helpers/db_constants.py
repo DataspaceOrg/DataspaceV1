@@ -16,6 +16,10 @@ METADATA_DB = BASE_DIR / "metadata.db"
 
 # Metadata table name in the metadata database.
 METADATA_TABLE = "datasets_metadata"
+# Agent queries table name in the metadata database.
+AGENT_QUERIES_TABLE = "agent_queries"
+# Agent queries table name in the metadata database.
+AGENT_SESSIONS_TABLE = "agent_sessions"
 
 class Dataset(BaseModel):
     '''
@@ -35,6 +39,17 @@ class Dataset(BaseModel):
 
 if __name__ == "__main__":
     print(BASE_DIR)
+
+class AgentSession(BaseModel):
+    '''
+    AgentSession is a model that represents the agent session of a dataset that gets uploaded to the database.
+    '''
+    session_id: str
+    dataset_id: str
+    table_name: str
+    current_step: str
+    created_at: str
+    updated_at: str
 
 
 # python3 -m db_helpers.db_constants

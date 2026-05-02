@@ -2,6 +2,7 @@ import duckdb
 import os
 from db_helpers.db_services import get_sample_rows
 from db_helpers.db_metadata import get_dataset_by_id
+from db_helpers.db_agent_session import create_agent_session, update_agent_session, get_agent_session
 from openai import OpenAI
 import logging
 import dotenv
@@ -145,6 +146,13 @@ class InsightAgent:
 
     def run_full_agent(self, table_name: str) -> str:
 
+        # Create a session for the agent on the first step.
+        # Edge case for if one exists. 
+        session_id = create_agent_session(self.dataset_id, table_name, "insight")
+
+        if session_id is None:
+            raise ValueError("Failed to create agent session.")
+
         if self.dataset.upload_type == "csv":
             sample_rows = self.retrieve_sample_rows(table_name)
             self.formatted_sample_rows = self.format_sample_rows(sample_rows)
@@ -160,12 +168,10 @@ class InsightAgent:
 
 if __name__ == "__main__":
 
-    # response1 = InsightAgent("d2808899-d2ab-405c-82e0-3e34c5517913").run_full_agent("d2808899-d2ab-405c-82e0-3e34c5517913", "ins_feat")
+    # response1 = InsightAgent("d2808899-d2ab-405c-82e0-3e34c5517913").run_full_agent("ins_feat")
     # print(response1)
-    response2 = InsightAgent("56af60ba-ba76-4321-bf83-66454d972ff9").run_full_agent("56af60ba-ba76-4321-bf83-66454d972ff9", "customers")
+    response2 = InsightAgent("56af60ba-ba76-4321-bf83-66454d972ff9").run_full_agent("customers")
     print(response2)
-
-    
 
 
 # python3 -m ai_helpers.insight_agent

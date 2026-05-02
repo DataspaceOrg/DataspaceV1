@@ -129,7 +129,6 @@ def get_sqlite_table_names(sqlite_path: Path) -> list[str]:
 
     # Connect to the sqlite database.
     sqlite_conn = sqlite3.connect(str(sqlite_path))
-
     # Get the table names from the sqlite database.
     cursor = sqlite_conn.execute(
             "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name")
