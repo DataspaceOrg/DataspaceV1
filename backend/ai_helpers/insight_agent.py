@@ -21,6 +21,7 @@ class InsightAgent:
         self.formatted_sample_rows = None
         self.session_id = None
         self.step_id = None
+        self.dataset_context = "" # Default to an empty string.
 
         # Retrieve the dataset object to use for the agent. 
         self.retrieve_dataset()
@@ -108,7 +109,7 @@ class InsightAgent:
         
         return "\n\n".join(text_blocks)
 
-    def build_system_prompt(self) -> None:
+    def build_system_prompt(self, dataset_context: str | None = None) -> None:
         '''
         build_system_prompt is a function that builds the system prompt for the agent to retrieve the insight of the data
         Args:
@@ -116,6 +117,21 @@ class InsightAgent:
         Returns:
             str - The system prompt for the agent.
         '''
+
+        context_block = ""
+        
+        # If the dataset context is provided, add it to the system prompt.
+        if dataset_context and dataset_context.strip():
+            self.dataset_context = dataset_context.strip()
+            context_block = f"""
+            ## USER PROVIDED CONTEXT:
+            The user has provided the following information regarding the dataset:
+            {self.dataset_context}
+
+            Use this information as guidance when interpretting the dataset, but do not make claims that are not supported by the schema, metadata, or sample rows.
+            If the user context conflicts with the data, note the uncertainty.
+            """
+
         system_prompt = f"""
         System: “You are a data analyst. Given the dataset metadata, schema, and sample rows below, 
         write a short overview: what the dataset is about, what the main columns mean, 
@@ -132,8 +148,9 @@ class InsightAgent:
 
         ## Sample rows:
         {self.formatted_sample_rows}
-        """
 
+        {context_block}
+        """
         self.system_prompt = system_prompt
 
     def run_agent(self) -> str:
@@ -148,11 +165,10 @@ class InsightAgent:
         )
 
         # Create a query for the agent query, user input prompt is temporary.
-        self.step_id = create_agent_query(self.session_id, "insight", "temporary_prompt", response.choices[0].message.content, datetime.now().isoformat())
-        breakpoint()
+        self.step_id = create_agent_query(self.session_id, "insight", self.dataset_context, response.choices[0].message.content, datetime.now().isoformat())
         return response.choices[0].message.content
 
-    def run_full_agent(self, table_name: str) -> str:
+    def run_full_agent(self, table_name: str, dataset_context: str | None = None) -> str:
 
         # Create a session for the agent on the first step.
         # Edge case for if one exists. 
@@ -164,14 +180,14 @@ class InsightAgent:
         if self.dataset.upload_type == "csv":
             sample_rows = self.retrieve_sample_rows(table_name)
             self.formatted_sample_rows = self.format_sample_rows(sample_rows)
-            self.build_system_prompt()
+            self.build_system_prompt(dataset_context)
             return self.run_agent()
 
         # Format sample rows works for both types, currently differentiating in case of errors. 
         elif self.dataset.upload_type == "db":
             sample_rows = self.retrieve_sample_rows(table_name)
             self.formatted_sample_rows = self.format_sample_rows(sample_rows)
-            self.build_system_prompt()
+            self.build_system_prompt(dataset_context)
             return self.run_agent()
 
 if __name__ == "__main__":

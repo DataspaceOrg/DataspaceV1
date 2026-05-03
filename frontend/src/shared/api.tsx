@@ -1,5 +1,6 @@
 const API_BASE = 'http://localhost:8000';
 
+/* Defined Constants for the API */
 export type UploadType = "csv" | "json" | "jsonl" | "sqlite" | "sql_dump" | "sql" | "db" | "unknown";
 
 export type Dataset = {
@@ -9,6 +10,11 @@ export type Dataset = {
     dataset_path: string;
     tables: string[];
     schema: Record<string, Record<string, string>>;
+}
+
+type InsightRequest = {
+    table_name: string;
+    dataset_context?: string;
 }
 
 type InsightResponse = {
@@ -42,10 +48,14 @@ export async function fetchDatasetById(dataset_id: string): Promise<Dataset> {
     return data;
 }
 
-export async function queryInsightAgent(dataset_id: string, table_name: string): Promise<InsightResponse> {
-    const response = await fetch(`${API_BASE}/ai/dataset/${dataset_id}/insight?table_name=${table_name}`,
+/* Insight Agent API Functions */
+
+export async function queryInsightAgent(dataset_id: string, body: InsightRequest): Promise<InsightResponse> {
+    const response = await fetch(`${API_BASE}/ai/dataset/${dataset_id}/insight`,
         {
             method: 'POST',
+            headers: {'Content-Type': 'application/json',},
+            body: JSON.stringify(body),
         }
     );
 
@@ -56,3 +66,4 @@ export async function queryInsightAgent(dataset_id: string, table_name: string):
     const data = await response.json()
     return data;
 }
+/* End of Insight Agent API Functions */

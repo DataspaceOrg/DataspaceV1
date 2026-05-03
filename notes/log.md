@@ -54,3 +54,11 @@ Worked on building the backend for the project by initializing the first AI Agen
 ## May 2,2026
 - Creating the agent_session table and the agent_queries table. 
 - Built functions to create, update, and get agent sessions.
+
+## May 3, 2026
+- TODO: Fix the temporary prompt input. Add an input that gives extra information to the agent.
+- TODO: Allow for access to the agent queries.
+- TODO: Add the information login for a user.
+- TODO: Start working on the aggregation agent. 
+
+- Finished adding a temporary prompt input which gives additional information to the agent.

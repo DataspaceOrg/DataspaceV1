@@ -10,6 +10,7 @@ function Dataset() {
     const [error, setError] = useState<string | null>(null);
     const [insightMessage, setInsightMessage] = useState<string | null>(null);
     const [selectedTable, setSelectedTable] = useState<string | null>(null);
+    const [datasetContext, setDatasetContext] = useState('');
 
 
     useEffect(() => {
@@ -68,7 +69,7 @@ function Dataset() {
         }
 
         try {
-            const response = await queryInsightAgent(dataset_id, selectedTable);
+            const response = await queryInsightAgent(dataset_id, { table_name: selectedTable, dataset_context: datasetContext, });
             setInsightMessage(response.insight_response);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An unknown error occurred');
@@ -205,6 +206,13 @@ function Dataset() {
                                     <span className="dataset-workflow-step-label">Step 1: Initial Insight</span>
                                 </div>
                                 <p>An Initial insight gaining information about your database will be run on: {selectedTable}</p>
+
+                                <label className="dataset-input-label" htmlFor="dataset-context-input">Additional Information</label>
+                                <textarea id="dataset-context-input" value={datasetContext}
+                                className="dataset-input-textarea"
+                                onChange={(e) => setDatasetContext(e.target.value)}
+                                placeholder="Enter any additional information about the dataset that you want the agent to know."
+                                />  
 
                                 {/* Run the insight agent. */}
                                 <div className="dataset-workflow-step-button">

@@ -160,6 +160,48 @@
   font-weight: 600;
 }
 
+/* Input textareas */
+
+.dataset-input-label {
+  display: block;
+  margin: 1.4rem 0 0.8rem;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--ds-text);
+}
+
+.dataset-input-textarea {
+  width: 100%;
+  min-height: 10rem;
+  max-width: 100%;
+  resize: vertical;
+  padding: 1.2rem 1.4rem;
+  border: 1px solid #d7dce2;
+  border-radius: 1.2rem;
+  background: #fbfcfe;
+  color: var(--ds-text);
+  font-size: 1.4rem;
+  line-height: 1.6;
+  font-family: inherit;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.dataset-input-textarea::placeholder {
+  color: var(--ds-text-muted);
+}
+
+.dataset-input-textarea:hover {
+  background: #ffffff;
+  border-color: #bfd3f2;
+}
+
+.dataset-input-textarea:focus {
+  outline: none;
+  background: #ffffff;
+  border-color: var(--ds-primary);
+  box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.12);
+}
+
 /* Main lower grid */
 .dataset-layout-grid {
   display: grid;
