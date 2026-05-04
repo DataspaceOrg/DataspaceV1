@@ -57,8 +57,15 @@ Worked on building the backend for the project by initializing the first AI Agen
 
 ## May 3, 2026
 - TODO: Fix the temporary prompt input. Add an input that gives extra information to the agent.
-- TODO: Allow for access to the agent queries.
+- TODO: Create session handlers to restore information.
 - TODO: Add the information login for a user.
 - TODO: Start working on the aggregation agent. 
 
 - Finished adding a temporary prompt input which gives additional information to the agent.
+- Working on restoring information from the agent sessions. 
+
+Steps: When opening the dataset page. A selected table is set. Our frontend will ask the backend 
+if there is an existing agent session. If it does then it loads the existing session information and populates the UI with the information.
+
+- TODO FIX: Have the data from retrieving an AgentSession and AgentQuery be reflected in the frontend.
+- TODO FIX: Have the data from creating a new agent session and new agent query use the AgentSession and AgentQuery types for returning information back to the frontend while also storing to the database. 

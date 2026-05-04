@@ -1,4 +1,4 @@
-import { fetchDatasetById, type Dataset as DatasetModel, queryInsightAgent } from '../shared/api';
+import { fetchDatasetById, type Dataset as DatasetModel, queryInsightAgent, restoreTableSession, type AgentSession, type RestoreSessionResponse, type AgentQuery } from '../shared/api';
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import '../styles/Dataset.css';
@@ -12,7 +12,11 @@ function Dataset() {
     const [selectedTable, setSelectedTable] = useState<string | null>(null);
     const [datasetContext, setDatasetContext] = useState('');
 
+    const [session, setSession] = useState<AgentSession | null>(null);
+    const [queries, setQueries] = useState<AgentQuery[]>([]);
 
+
+    // Use effect for fetching information about the dataset.
     useEffect(() => {
         const id = dataset_id;
         if (!id) {
@@ -47,6 +51,41 @@ function Dataset() {
             cancelled = true;
         }
     }, [dataset_id]);
+
+    useEffect(() => {
+        // If the dataset id or selected table is not set, then no operation can be performed.
+        if (!dataset_id || !selectedTable) return;
+
+        let cancelled = false;
+
+        async function restoreSession(datasetId: string, tableName: string) {
+
+            // Returns a response with the RestoreSessionResponse promise. 
+            const sessionResponse = await restoreTableSession(datasetId, tableName)
+
+            if (cancelled) return;
+
+            if (!sessionResponse.exists) {
+                setSession(null);
+            }
+
+            // Append the existing session and queries to the state. 
+            setSession(sessionResponse.AgentSession);
+            setQueries(sessionResponse.queries);
+
+            // Retrieve the latest insight query from the session. (Currently there should only be 1 or 0 insight queries per existing session.)
+            // We take a copu of the sessionResponse.queries and reverse it to get the latest insight query.
+            const latestInsight = [...sessionResponse.queries].reverse().find((query) => query.agent_step === 'insight');
+
+            setInsightMessage(latestInsight?.response_output ?? null);
+        }
+
+        restoreSession(dataset_id, selectedTable);
+        // Cleanup function for when the component is unmounted (i.e if the user navigates away from the dataset page).
+        return () => {
+            cancelled = true;
+        }
+    }, [dataset_id, selectedTable]);
 
     if (loading) return <div className="dataset-page">Loading…</div>;
     if (error) return <div className="dataset-page">Error: {error}</div>;

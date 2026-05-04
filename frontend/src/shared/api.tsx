@@ -22,6 +22,32 @@ type InsightResponse = {
     insight_response: string;
 };
 
+// Agent Sessions and Agent Query types which will be used to restore existing sessions.
+
+export type AgentSession = {
+    session_id: string;
+    dataset_id: string;
+    table_name: string;
+    current_step: string;
+    created_at: string;
+    updated_at: string;
+}
+
+export type AgentQuery = {
+    step_id: string;
+    session_id: string;
+    agent_step: string;
+    prompt_input: string;
+    response_output: string;
+    created_at: string;
+}
+
+export type RestoreSessionResponse = {
+    exists: boolean;
+    AgentSession: AgentSession | null;
+    queries: AgentQuery[];
+}
+
 
 export async function fetchDatasets(): Promise<Dataset[]> {
 
@@ -46,6 +72,19 @@ export async function fetchDatasetById(dataset_id: string): Promise<Dataset> {
 
     const data = await response.json();
     return data;
+}
+
+export async function restoreTableSession(dataset_id: string, table_name: string): Promise<RestoreSessionResponse> {
+
+    const params = new URLSearchParams({ table_name });
+    const response = await fetch(`${API_BASE}/ai/dataset/${dataset_id}/session?${params.toString()}`);
+
+    if (!response.ok) {
+        throw new Error(`Failed to restore table session: ${response.statusText}`);
+    }
+
+    const session_data = await response.json();
+    return session_data;
 }
 
 /* Insight Agent API Functions */
