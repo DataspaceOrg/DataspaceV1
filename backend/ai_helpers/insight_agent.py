@@ -14,29 +14,27 @@ dotenv.load_dotenv()
 
 class InsightAgent:
     def __init__(self, dataset_id: str):
+
         self.dataset_id = dataset_id
+
+        # The dataset metadata that describes the dataset.
         self.dataset = None
+        # Sample rows from the dataset from the retrieve_sample_rows function.
         self.sample_rows = None
+        # The system prompt for the agent to use.
         self.system_prompt = None
+        # Formatted sample rows from the dataset from the format_sample_rows function.
         self.formatted_sample_rows = None
-        self.session_id = None
-        self.step_id = None
+
+        # The session object that was created and sent to the db using the imported create_agent_session function.
+        self.session = None
+        # The agent query object that was created once the agent was run using run_agent.
+        self.agent_query = None
+
         self.dataset_context = "" # Default to an empty string.
 
-        # Retrieve the dataset object to use for the agent. 
+        # Initialize the InsightAgent by Retrieving the dataset object to use. 
         self.retrieve_dataset()
-
-    def run_simple_query(self, query: str):
-        client = OpenAI()
-
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": "you are saying hello to someone, make a greeting"},
-                {"role": "user", "content": query}
-            ]
-        )
-        return response.choices[0].message.content
 
     def retrieve_dataset(self):
         '''
@@ -165,30 +163,34 @@ class InsightAgent:
         )
 
         # Create a query for the agent query, user input prompt is temporary.
-        self.step_id = create_agent_query(self.session_id, "insight", self.dataset_context, response.choices[0].message.content, datetime.now().isoformat())
-        return response.choices[0].message.content
+        return create_agent_query(self.session.session_id, "insight", self.dataset_context, response.choices[0].message.content, datetime.now().isoformat())
 
-    def run_full_agent(self, table_name: str, dataset_context: str | None = None) -> str:
+    def run_full_agent(self, table_name: str, dataset_context: str | None = None) -> dict:
 
         # Create a session for the agent on the first step.
         # Edge case for if one exists. 
-        self.session_id = create_agent_session(self.dataset_id, table_name, "insight")
+        self.session = create_agent_session(self.dataset_id, table_name, "insight")
 
-        if self.session_id is None:
+        if self.session is None:
             raise ValueError("Failed to create agent session.")
 
         if self.dataset.upload_type == "csv":
             sample_rows = self.retrieve_sample_rows(table_name)
             self.formatted_sample_rows = self.format_sample_rows(sample_rows)
             self.build_system_prompt(dataset_context)
-            return self.run_agent()
+            self.agent_query = self.run_agent()
+            
+            # return a dictionary with the format of an InsightSession response.
+            return {"message": "Insight agent run successfully", "session": self.session, "query": self.agent_query} 
 
         # Format sample rows works for both types, currently differentiating in case of errors. 
         elif self.dataset.upload_type == "db":
             sample_rows = self.retrieve_sample_rows(table_name)
             self.formatted_sample_rows = self.format_sample_rows(sample_rows)
             self.build_system_prompt(dataset_context)
-            return self.run_agent()
+
+            self.agent_query = self.run_agent()
+            return {"message": "Insight agent run successfully", "session": self.session, "query": self.agent_query} 
 
 if __name__ == "__main__":
 

@@ -15,7 +15,7 @@ def read_root():
 
 # get_insight is a synchronous function as the insight is needed before being able to chain next steps.
 @router.post("/dataset/{dataset_id}/insight")
-def get_insight(dataset_id: str, body: InsightRequest) -> dict[str, str]:
+def get_insight(dataset_id: str, body: InsightRequest) -> dict:
     '''
     Get insight is a service that allows for the frontend to get an immediate insight of the data.
     '''
@@ -26,15 +26,16 @@ def get_insight(dataset_id: str, body: InsightRequest) -> dict[str, str]:
         dataset_context=body.dataset_context,
     )
 
-    # Note: When this is returned, python returns it as a dictionary, but over the rest framework it is converted and sent as a JSON object.
-    return {"message": "Insight retrieved successfully", "insight_response": insight_response}
+    # insight_response is a dictionary with the format of the frontend InsightResponse type. {"message": "Insight agent run successfully", "session": AgentSession, "query": AgentQuery}
+    return insight_response
 
 @router.get("/dataset/{dataset_id}/session")
-def retrieve_table_session(dataset_id: str, table_name: str) -> AgentQuery:
+def retrieve_table_session(dataset_id: str, table_name: str) -> dict:
     '''
     retrieve_table_session: Retrieves the latest agent session for a table. It will return all of the agent queries that are for a session.
     '''
 
+    # Returns an AgentSession object if it exists, otherwise None. 
     session = restore_table_session(dataset_id, table_name)
 
     # No sessions exist, so creating a new one is necessary.

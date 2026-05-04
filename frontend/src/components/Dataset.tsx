@@ -67,10 +67,16 @@ function Dataset() {
 
             if (!sessionResponse.exists) {
                 setSession(null);
+                setQueries([]);
+                setInsightMessage(null);
+                return;
             }
 
+            // Logging the session. 
+            console.log(sessionResponse);
+
             // Append the existing session and queries to the state. 
-            setSession(sessionResponse.AgentSession);
+            setSession(sessionResponse.session);
             setQueries(sessionResponse.queries);
 
             // Retrieve the latest insight query from the session. (Currently there should only be 1 or 0 insight queries per existing session.)
@@ -109,7 +115,7 @@ function Dataset() {
 
         try {
             const response = await queryInsightAgent(dataset_id, { table_name: selectedTable, dataset_context: datasetContext, });
-            setInsightMessage(response.insight_response);
+            setInsightMessage(response.query.response_output);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An unknown error occurred');
         }

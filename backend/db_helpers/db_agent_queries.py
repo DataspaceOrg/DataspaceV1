@@ -43,7 +43,8 @@ def create_agent_query(session_id: str, agent_step: str, prompt_input: str, resp
         print(f"Error creating agent query: {exception}")
         raise exception
 
-    return step_id
+    # Return the agent query object that was created towards the frontend. 
+    return AgentQuery(step_id=step_id, session_id=session_id, agent_step=agent_step, prompt_input=prompt_input, response_output=response_output, created_at=created_at)
 
 def get_agent_query(step_id: str) -> AgentQuery:
     '''

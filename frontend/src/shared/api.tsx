@@ -12,6 +12,8 @@ export type Dataset = {
     schema: Record<string, Record<string, string>>;
 }
 
+// Insight Session response formats from ai_routes.py
+
 type InsightRequest = {
     table_name: string;
     dataset_context?: string;
@@ -19,7 +21,8 @@ type InsightRequest = {
 
 type InsightResponse = {
     message: string;
-    insight_response: string;
+    session: AgentSession;
+    query: AgentQuery;
 };
 
 // Agent Sessions and Agent Query types which will be used to restore existing sessions.
@@ -44,7 +47,7 @@ export type AgentQuery = {
 
 export type RestoreSessionResponse = {
     exists: boolean;
-    AgentSession: AgentSession | null;
+    session: AgentSession | null;
     queries: AgentQuery[];
 }
 

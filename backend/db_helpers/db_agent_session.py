@@ -24,7 +24,7 @@ def connect_agent_session_db():
     conn.commit()
     return conn
 
-def create_agent_session(dataset_id: str, table_name: str, current_step: str) -> str:
+def create_agent_session(dataset_id: str, table_name: str, current_step: str) -> AgentSession:
     '''
     create_agent_session: Creates a new agent session for a dataset and table.
 
@@ -52,7 +52,7 @@ def create_agent_session(dataset_id: str, table_name: str, current_step: str) ->
         print(f"Error creating agent session: {exception}")
         raise exception
 
-    return session_id
+    return AgentSession(session_id=session_id, dataset_id=dataset_id, table_name=table_name, current_step=current_step, created_at=created_at, updated_at=updated_at)
 
 def update_agent_session(session_id: str, current_step: str) -> str:
     '''
