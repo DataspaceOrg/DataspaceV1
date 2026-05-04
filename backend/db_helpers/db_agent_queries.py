@@ -16,7 +16,7 @@ def connect_agent_queries_db():
 
     conn.execute(f"""CREATE TABLE IF NOT EXISTS {AGENT_QUERIES_TABLE} (step_id TEXT PRIMARY KEY, 
     session_id TEXT NOT NULL, 
-    agent_step INTEGER NOT NULL, 
+    agent_step TEXT NOT NULL, 
     prompt_input TEXT NOT NULL, 
     response_output TEXT NOT NULL, 
     created_at TEXT NOT NULL)""")
@@ -51,16 +51,16 @@ def get_agent_query(step_id: str) -> AgentQuery:
     '''
 
     conn = connect_agent_queries_db()
-    conn.execute(f"SELECT * FROM {AGENT_QUERIES_TABLE} WHERE step_id = ?", (step_id,))
-    cursor = conn.fetchone()
-    return AgentQuery(step_id=cursor[0], session_id=cursor[1], agent_step=cursor[2], prompt_input=cursor[3], response_output=cursor[4], created_at=cursor[5])
+    cursor = conn.execute(f"SELECT * FROM {AGENT_QUERIES_TABLE} WHERE step_id = ?", (step_id,))
+    row = cursor.fetchone()
+    return AgentQuery(step_id=row[0], session_id=row[1], agent_step=row[2], prompt_input=row[3], response_output=row[4], created_at=row[5])
 
 def agent_query_history(session_id: str) -> list[AgentQuery]:
     '''
-    agent_query_history: Retrieves the agent query history for a session.
+    agent_query_history: Retrieves the agent queries associated with an existing session
     '''
 
     conn = connect_agent_queries_db()
-    conn.execute(f"SELECT * FROM {AGENT_QUERIES_TABLE} WHERE session_id = ?", (session_id,))
-    cursor = conn.fetchall()
-    return [AgentQuery(step_id=row[0], session_id=row[1], agent_step=row[2], prompt_input=row[3], response_output=row[4], created_at=row[5]) for row in cursor]
+    cursor = conn.execute(f"SELECT * FROM {AGENT_QUERIES_TABLE} WHERE session_id = ? ORDER BY created_at ASC", (session_id,))
+    rows = cursor.fetchall()
+    return [AgentQuery(step_id=row[0], session_id=row[1], agent_step=row[2], prompt_input=row[3], response_output=row[4], created_at=row[5]) for row in rows]

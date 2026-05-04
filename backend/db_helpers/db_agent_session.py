@@ -1,5 +1,5 @@
 import sqlite3
-from .db_constants import METADATA_DB, AGENT_QUERIES_TABLE, AGENT_SESSIONS_TABLE, Dataset
+from .db_constants import METADATA_DB, AGENT_QUERIES_TABLE, AGENT_SESSIONS_TABLE, AgentSession
 from datetime import datetime
 import uuid
 
@@ -54,7 +54,7 @@ def create_agent_session(dataset_id: str, table_name: str, current_step: str) ->
 
     return session_id
 
-def update_agent_session(session_id: str, status: str) -> str:
+def update_agent_session(session_id: str, current_step: str) -> str:
     '''
     update_agent_session: Updates the status of the agent session.
     '''
@@ -64,8 +64,8 @@ def update_agent_session(session_id: str, status: str) -> str:
         # Check the datatype of this here. 
         updated_at = datetime.now().isoformat()
 
-        conn.execute(f"UPDATE {AGENT_SESSIONS_TABLE} SET status = ?, updated_at = ? WHERE session_id = ?",
-        (status, updated_at, session_id))
+        conn.execute(f"UPDATE {AGENT_SESSIONS_TABLE} SET current_step = ?, updated_at = ? WHERE session_id = ?",
+        (current_step, updated_at, session_id))
         conn.commit()
 
     except sqlite3.Error as exception:
@@ -82,8 +82,9 @@ def get_agent_session(session_id: str) -> dict:
 
     try:
         conn = connect_agent_session_db()
-        conn.execute(f"SELECT * FROM {AGENT_SESSIONS_TABLE} WHERE session_id = ?", (session_id,))
-        cursor = conn.fetchone()
+        cursor = conn.execute(f"SELECT * FROM {AGENT_SESSIONS_TABLE} WHERE session_id = ?", (session_id,))
+        # Individual agent session row retrieved (Check for sorted by datetime for latest). 
+        row = cursor.fetchone()
 
         if cursor is None:
             raise ValueError(f"Agent session with id {session_id} not found.")
@@ -97,7 +98,29 @@ def get_agent_session(session_id: str) -> dict:
         dataset_id=cursor[1],
         table_name=cursor[2],
         current_step=cursor[3],
-        status=cursor[4],
-        created_at=cursor[5],
-        updated_at=cursor[6]
+        created_at=cursor[4],
+        updated_at=cursor[5],
+    )
+
+def restore_table_session(dataset_id: str, table_name: str) -> AgentSession | None:
+    '''
+    restore_table_session: Retrieves the latest agent session for a table. Allows the user to continue from the last step they left off. 
+    '''
+
+    conn = connect_agent_session_db()
+    cursor = conn.execute(f"""SELECT * FROM {AGENT_SESSIONS_TABLE} WHERE dataset_id = ? AND table_name = ?
+    ORDER BY updated_at DESC
+    LIMIT 1""", (dataset_id, table_name))
+
+    row = cursor.fetchone()
+    if row is None:
+        return None
+
+    return AgentSession(
+        session_id=row[0],
+        dataset_id=row[1],
+        table_name=row[2],
+        current_step=row[3],
+        created_at=row[4],
+        updated_at=row[5],
     )
