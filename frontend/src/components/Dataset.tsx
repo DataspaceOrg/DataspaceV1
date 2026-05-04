@@ -1,4 +1,4 @@
-import { fetchDatasetById, type Dataset as DatasetModel, queryInsightAgent, restoreTableSession, type AgentSession, type AgentQuery } from '../shared/api';
+import { fetchDatasetById, type Dataset as DatasetModel, queryInsightAgent, restoreTableSession } from '../shared/api';
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import '../styles/Dataset.css';
