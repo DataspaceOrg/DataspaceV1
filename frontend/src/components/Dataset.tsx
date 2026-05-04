@@ -1,4 +1,4 @@
-import { fetchDatasetById, type Dataset as DatasetModel, queryInsightAgent, restoreTableSession, type AgentSession, type RestoreSessionResponse, type AgentQuery } from '../shared/api';
+import { fetchDatasetById, type Dataset as DatasetModel, queryInsightAgent, restoreTableSession, type AgentSession, type AgentQuery } from '../shared/api';
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import '../styles/Dataset.css';
@@ -12,8 +12,8 @@ function Dataset() {
     const [selectedTable, setSelectedTable] = useState<string | null>(null);
     const [datasetContext, setDatasetContext] = useState('');
 
-    const [session, setSession] = useState<AgentSession | null>(null);
-    const [queries, setQueries] = useState<AgentQuery[]>([]);
+    // const [session, setSession] = useState<AgentSession | null>(null);
+    // const [queries, setQueries] = useState<AgentQuery[]>([]);
 
 
     // Use effect for fetching information about the dataset.
@@ -66,8 +66,8 @@ function Dataset() {
             if (cancelled) return;
 
             if (!sessionResponse.exists) {
-                setSession(null);
-                setQueries([]);
+                // setSession(null);
+                // setQueries([]);
                 setInsightMessage(null);
                 return;
             }
@@ -76,8 +76,8 @@ function Dataset() {
             console.log(sessionResponse);
 
             // Append the existing session and queries to the state. 
-            setSession(sessionResponse.session);
-            setQueries(sessionResponse.queries);
+            // setSession(sessionResponse.session);
+            // setQueries(sessionResponse.queries);
 
             // Retrieve the latest insight query from the session. (Currently there should only be 1 or 0 insight queries per existing session.)
             // We take a copu of the sessionResponse.queries and reverse it to get the latest insight query.
