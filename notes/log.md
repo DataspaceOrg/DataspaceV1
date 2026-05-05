@@ -69,3 +69,8 @@ if there is an existing agent session. If it does then it loads the existing ses
 
 - TODO FIX: Have the data from retrieving an AgentSession and AgentQuery be reflected in the frontend.
 - TODO FIX: Have the data from creating a new agent session and new agent query use the AgentSession and AgentQuery types for returning information back to the frontend while also storing to the database. 
+
+## May 5, 2026
+- Work on building an initial login page
+- Integrate login page with a user identification system in the backend. 
+- Performing db moficiations to dataset metadata. (Migrations)

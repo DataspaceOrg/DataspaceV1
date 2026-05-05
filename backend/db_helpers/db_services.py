@@ -42,6 +42,7 @@ def detect_upload_type(filename: str):
 def save_raw_file(dataset_dir: Path, file: UploadFile) -> Path:
     '''
     save_raw_file is a function that saves the raw file to the dataset directory.
+    It is connected to the uploading feature of the frontend in Upload.tsx.
 
     Args:
         dataset_dir: Path - The directory to save the raw file to. (Must Exist) Will be the dataset directory under its uuid.
@@ -76,7 +77,7 @@ def save_raw_file(dataset_dir: Path, file: UploadFile) -> Path:
 def save_parquet_file(dataset_dir: Path, raw_csv_path: Path) -> Path:
     '''
     save_parquet_file is a function that saves the parquet file to the dataset directory. 
-    Will be under the tables directory under its uuid.
+    Will be under the tables directory under its uuid. It is connected to the uploading feature of the frontend in Upload.tsx.
 
     Args:
         dataset_dir: Path - The directory to save the parquet file to. (
@@ -100,6 +101,7 @@ def get_parquet_schema(parquet_path: Path) -> dict[str, str]:
     '''
     Returns column names and types for a single Parquet file. 
     DuckDB infers types when writing CSV to Parquet, so we can read them back from Parquet file into our metadata.
+    It is used in the process of retrieving the schema for the dataset metadata. 
 
     Args: 
         parquet_path: Path - The path to the parquet file.
@@ -119,6 +121,7 @@ def get_parquet_schema(parquet_path: Path) -> dict[str, str]:
 def get_sqlite_table_names(sqlite_path: Path) -> list[str]:
     '''
     get_sqlite_table_names is a function that gets the table names from the sqlite database. Connection is done via sqlite3. 
+    Its role is for retrieving the table names for the dataset metadata from the sqlite database.
 
     Args:
         sqlite_path: Path - The path to the sqlite database.
@@ -141,6 +144,7 @@ def get_sqlite_table_names(sqlite_path: Path) -> list[str]:
 def get_sqlite_schema(sqlite_path: Path) -> dict:
     '''
     get_sqlite_schema is a function that gets the schema of the sqlite database.
+    It is used in the process of retrieving the schema for the dataset metadata. (SQLite databases)
 
     Args:
         sqlite_path: Path - The path to the sqlite database.

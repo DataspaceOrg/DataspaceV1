@@ -5,6 +5,8 @@ import uuid
 
 '''
 db_agent_queries.py is a module that contains the functions to interact with the agent queries table inside of the metadata database.
+It will hold all of the queries to the model that were made in each stage.
+It is connected to the insight agent, aggregation agent, and other agents that are used to work through the dataset.
 '''
 
 def connect_agent_queries_db():

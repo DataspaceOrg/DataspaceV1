@@ -5,6 +5,8 @@ import uuid
 
 '''
 db_agent_session.py is a module that contains the functions to create and manage agent sessions for a specific dataset. 
+For each dataset, an agent session is created which helps track the progress of an agent as it works through the dataset. 
+It is connected to the insight agent for initially creating an agent session.
 '''
 
 def connect_agent_session_db():
