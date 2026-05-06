@@ -15,3 +15,26 @@ def connect_users_db():
     '''
 
     conn = sqlite3.connect(METADATA_DB)
+    conn.execute(f"""
+    CREATE TABLE IF NOT EXISTS {USERS_TABLE} 
+        user_id TEXT PRIMARY KEY,
+        username TEXT NOT NULL UNIQUE,
+        email TEXT UNIQUE, 
+        password_hash TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+    )
+    """)
+    conn.commit()
+    return conn
+
+def hash_password(password: str) -> str:
+    pass
+
+def create_user(username: str, email: str | None, password: str) -> User:
+    conn = connect_users_db()
+
+    user_id = str(uuid.uuid4())
+    now = datetime.now().isoformat()
+
+
