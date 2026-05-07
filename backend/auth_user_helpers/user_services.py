@@ -3,7 +3,7 @@ import uuid
 import os
 from passlib.context import CryptContext
 from datetime import datetime
-from user_models import METADATA_DB, USERS_TABLE, User
+from auth_user_helpers.user_models import METADATA_DB, USERS_TABLE, User, UserPublic
 
 '''
 user_services.py is a module that contains functions to interact with the users table in metadata.db 
