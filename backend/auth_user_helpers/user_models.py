@@ -1,5 +1,5 @@
 from pathlib import Path
-from Pydantic import BaseModel
+from pydantic import BaseModel
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -12,6 +12,14 @@ class User(BaseModel):
     username: str
     email: str
     password_hash: str
+    created_at: str
+    updated_at: str
+
+# UserPublic is a model that represents the information that the frontend retrieves from the backend. 
+class UserPublic(BaseModel):
+    user_id: str
+    username: str
+    email: str
     created_at: str
     updated_at: str
 

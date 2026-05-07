@@ -15,6 +15,7 @@ app.add_middleware(
 
 app.include_router(db_routes.router)
 app.include_router(ai_routes.router)
+app.include_router(user_routes.router)
 
 
 
