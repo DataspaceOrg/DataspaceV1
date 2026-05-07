@@ -74,3 +74,7 @@ if there is an existing agent session. If it does then it loads the existing ses
 - Work on building an initial login page
 - Integrate login page with a user identification system in the backend. 
 - Performing db moficiations to dataset metadata. (Migrations)
+
+## May 6, 2026
+- Built backend user authentification system.
+- Working on frontend user authentification system.
