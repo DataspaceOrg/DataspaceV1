@@ -42,7 +42,7 @@ def verify_password(password: str, password_hash: str) -> bool:
     '''
     return pwd_context.verify(password, password_hash)
 
-def create_user(username: str, email: str | None, password: str) -> User:
+def create_user(username: str, email: str | None, password: str) -> UserPublic:
     conn = connect_users_db()
 
     user_id = str(uuid.uuid4())
@@ -58,12 +58,13 @@ def create_user(username: str, email: str | None, password: str) -> User:
     conn.commit()
 
     # Return the new user that was created
-    return User(user_id=user_id,
-    username=username, 
-    email=email, 
-    password_hash=password_hash, 
-    created_at=now, 
-    updated_at=now)
+    return UserPublic(
+        user_id=user_id,
+        username=username,
+        email=email,
+        created_at=now,
+        updated_at=now
+    )
 
 def get_user_by_id(user_id: str) -> User | None:
 

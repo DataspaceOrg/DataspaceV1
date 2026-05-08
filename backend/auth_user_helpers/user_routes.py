@@ -8,9 +8,13 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 @router.post("/register")
 def register_user(body: UserCreate) -> dict[str, User]:
     '''
-    register_user registers a new user into the database.
+    register_user registers a new user into the database, returns an AuthResponse object (see frontend objects) and the public information of the user.
+
+    Note: In later implementation, might redirect to the login page after successful registration.
+    This is for the case if we need to verify email. 
     '''
     try:
+    # Create user returns a UserPublic object.
         new_user = create_user(
             username=body.username,
             email=body.email,
@@ -24,14 +28,14 @@ def register_user(body: UserCreate) -> dict[str, User]:
 @router.post("/login")
 def login(body: UserLogin) -> dict[str, User]:
     '''
-    login authenticates a user and returns a JWT token.
+    login authenticates a user and returns an AuthResponse object (see frontend objects) and the public information of the user.
     '''
-    user = authenticate_user(email=body.email, password=body.password)
+    public_user = authenticate_user(email=body.email, password=body.password)
 
-    if user is None:
+    if public_user is None:
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    return {"message": "Login successful", "user": user}
+    return {"message": "Login successful", "user": public_user}
 
 @router.get("/users/{user_id}")
 def get_user(user_id: str) -> dict[str, User]:
