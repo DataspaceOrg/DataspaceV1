@@ -78,3 +78,7 @@ if there is an existing agent session. If it does then it loads the existing ses
 ## May 6, 2026
 - Built backend user authentification system.
 - Working on frontend user authentification system.
+
+## May 8, 2026
+- TODO: Work on adding migrations to the database for the dataset metadata and agent_sessions tables.
+- 
