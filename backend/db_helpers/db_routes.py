@@ -1,5 +1,5 @@
 from fastapi import FastAPI, APIRouter, HTTPException
-from fastapi import UploadFile, File
+from fastapi import UploadFile, File, Header
 import uuid
 from .db_services import (
     detect_upload_type,
@@ -21,23 +21,26 @@ def read_root():
     return {"message": "Welcome to the DB Helper API"}
 
 @router.get("/datasets/{dataset_id}")
-def get_dataset_route(dataset_id: str) -> Dataset:
+def get_dataset_route(dataset_id: str, x_user_id: str = Header(...)) -> Dataset:
     '''
     Get dataset is a service that allows for the frontend to get a dataset by its id.
+    uses the get_dataset_by_id function to get the dataset by its id for a given user. (Provided in the header of the request.)
     '''
-    return get_dataset_by_id(dataset_id)
+    return get_dataset_by_id(dataset_id, x_user_id)
 
 @router.get("/datasets")
-def list_datasets_route() -> list[Dataset]:
+def list_datasets_route(x_user_id: str = Header(...)) -> list[Dataset]:
     '''
     List datasets is a service that allows for the frontend to list all the datasets in the database.
+    uses the list_datasets function to list all the datasets in the database for a given user. (Provided in the header of the request.)
     '''
-    return list_datasets()
+    return list_datasets(x_user_id)
 
 @router.post("/upload_db")
-def upload_db(file: UploadFile = File(...)) -> dict:
+def upload_db(file: UploadFile = File(...), x_user_id: str = Header(...)) -> dict:
     '''
     Upload db is a service that allows for the frontend to send a request object containing the file to be uploaded to the database. 
+
     '''
 
     # If no file is provided, raise an error.
@@ -61,6 +64,7 @@ def upload_db(file: UploadFile = File(...)) -> dict:
 
         new_dataset = Dataset(
             dataset_id=dataset_id,
+            user_id=x_user_id,
             upload_type=upload_type,
             raw_byte_size=raw_size,
             dataset_path=str(parquet_path),
@@ -79,6 +83,7 @@ def upload_db(file: UploadFile = File(...)) -> dict:
 
         new_dataset = Dataset(
             dataset_id=dataset_id,
+            user_id=x_user_id,
             upload_type=upload_type,
             raw_byte_size=raw_size,
             dataset_path=str(raw_path),

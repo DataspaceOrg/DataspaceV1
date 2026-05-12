@@ -31,6 +31,7 @@ class Dataset(BaseModel):
       - CSV/single table: {"parquet": {"column_name": "TYPE"}, ...} (if you add inference)
     '''
     dataset_id: str
+    user_id: str
     upload_type: UploadType
     raw_byte_size: int
     dataset_path: str # The dataset path.
@@ -45,6 +46,7 @@ class AgentSession(BaseModel):
     AgentSession is a model that represents the agent session of a dataset that gets uploaded to the database.
     '''
     session_id: str
+    user_id: str
     dataset_id: str
     table_name: str
     current_step: str

@@ -13,9 +13,11 @@ from datetime import datetime
 dotenv.load_dotenv()
 
 class InsightAgent:
-    def __init__(self, dataset_id: str):
+    def __init__(self, dataset_id: str, user_id: str):
 
         self.dataset_id = dataset_id
+
+        self.user_id = user_id
 
         # The dataset metadata that describes the dataset.
         self.dataset = None
@@ -41,7 +43,7 @@ class InsightAgent:
         Retrieve the metadata of the dataset from the database.
         '''
         # dataset object is returned from this call. 
-        dataset = get_dataset_by_id(self.dataset_id)
+        dataset = get_dataset_by_id(self.dataset_id, self.user_id)
         self.dataset = dataset
         return dataset
 
@@ -169,7 +171,7 @@ class InsightAgent:
 
         # Create a session for the agent on the first step.
         # Edge case for if one exists. 
-        self.session = create_agent_session(self.dataset_id, table_name, "insight")
+        self.session = create_agent_session(self.user_id, self.dataset_id, table_name, "insight")
 
         if self.session is None:
             raise ValueError("Failed to create agent session.")

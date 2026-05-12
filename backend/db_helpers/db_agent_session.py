@@ -17,7 +17,8 @@ def connect_agent_session_db():
     conn = sqlite3.connect(METADATA_DB)
 
     conn.execute(f"""CREATE TABLE IF NOT EXISTS {AGENT_SESSIONS_TABLE} (session_id TEXT PRIMARY KEY, 
-    dataset_id TEXT NOT NULL, 
+    dataset_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
     table_name TEXT NOT NULL, 
     current_step TEXT NOT NULL, 
     created_at TEXT NOT NULL, 
@@ -26,11 +27,12 @@ def connect_agent_session_db():
     conn.commit()
     return conn
 
-def create_agent_session(dataset_id: str, table_name: str, current_step: str) -> AgentSession:
+def create_agent_session(user_id: str,dataset_id: str, table_name: str, current_step: str) -> AgentSession:
     '''
     create_agent_session: Creates a new agent session for a dataset and table.
 
     Args
+        user_id: The id of the user.
         dataset_id: The id of the dataset.
         table_name: The name of the table to create a session for.
         current_step: The current step of the agent (insight, aggregation etc).
@@ -46,15 +48,15 @@ def create_agent_session(dataset_id: str, table_name: str, current_step: str) ->
         created_at = datetime.now().isoformat()
         updated_at = created_at
 
-        conn.execute(f"INSERT INTO {AGENT_SESSIONS_TABLE} (session_id, dataset_id, table_name, current_step, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
-        (session_id, dataset_id, table_name, current_step, created_at, updated_at))
+        conn.execute(f"INSERT INTO {AGENT_SESSIONS_TABLE} (session_id, user_id, dataset_id, table_name, current_step, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        (session_id, user_id, dataset_id, table_name, current_step, created_at, updated_at))
         conn.commit()
 
     except sqlite3.Error as exception:
         print(f"Error creating agent session: {exception}")
         raise exception
 
-    return AgentSession(session_id=session_id, dataset_id=dataset_id, table_name=table_name, current_step=current_step, created_at=created_at, updated_at=updated_at)
+    return AgentSession(session_id=session_id, user_id=user_id,dataset_id=dataset_id, table_name=table_name, current_step=current_step, created_at=created_at, updated_at=updated_at)
 
 def update_agent_session(session_id: str, current_step: str) -> str:
     '''
@@ -104,15 +106,20 @@ def get_agent_session(session_id: str) -> dict:
         updated_at=cursor[5],
     )
 
-def restore_table_session(dataset_id: str, table_name: str) -> AgentSession | None:
+def restore_table_session(user_id: str, dataset_id: str, table_name: str) -> AgentSession | None:
     '''
     restore_table_session: Retrieves the latest agent session for a table. Allows the user to continue from the last step they left off. 
+    Args:
+        user_id: The id of the user.
+        dataset_id: The id of the dataset.
+        table_name: The name of the table to restore the session for.
+    
     '''
 
     conn = connect_agent_session_db()
-    cursor = conn.execute(f"""SELECT * FROM {AGENT_SESSIONS_TABLE} WHERE dataset_id = ? AND table_name = ?
+    cursor = conn.execute(f"""SELECT * FROM {AGENT_SESSIONS_TABLE} WHERE user_id = ? AND dataset_id = ? AND table_name = ?
     ORDER BY updated_at DESC
-    LIMIT 1""", (dataset_id, table_name))
+    LIMIT 1""", (user_id, dataset_id, table_name))
 
     row = cursor.fetchone()
     if row is None:
@@ -120,9 +127,10 @@ def restore_table_session(dataset_id: str, table_name: str) -> AgentSession | No
 
     return AgentSession(
         session_id=row[0],
-        dataset_id=row[1],
-        table_name=row[2],
-        current_step=row[3],
-        created_at=row[4],
-        updated_at=row[5],
+        user_id=row[1],
+        dataset_id=row[2],
+        table_name=row[3],
+        current_step=row[4],
+        created_at=row[5],
+        updated_at=row[6],
     )

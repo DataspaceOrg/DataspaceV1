@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Header
 from ai_helpers.insight_agent import InsightAgent
 from ai_helpers.ai_constants import InsightRequest
 from db_helpers.db_constants import AgentSession, AgentQuery
@@ -15,12 +15,14 @@ def read_root():
 
 # get_insight is a synchronous function as the insight is needed before being able to chain next steps.
 @router.post("/dataset/{dataset_id}/insight")
-def get_insight(dataset_id: str, body: InsightRequest) -> dict:
+def get_insight(dataset_id: str, body: InsightRequest, x_user_id: str = Header(...)) -> dict:
     '''
     Get insight is a service that allows for the frontend to get an immediate insight of the data.
     '''
 
-    insight_agent = InsightAgent(dataset_id)
+    # create an insight agent for the given dataset and user.
+
+    insight_agent = InsightAgent(dataset_id, x_user_id)
     insight_response = insight_agent.run_full_agent(
         table_name=body.table_name,
         dataset_context=body.dataset_context,
@@ -30,13 +32,13 @@ def get_insight(dataset_id: str, body: InsightRequest) -> dict:
     return insight_response
 
 @router.get("/dataset/{dataset_id}/session")
-def retrieve_table_session(dataset_id: str, table_name: str) -> dict:
+def retrieve_table_session(dataset_id: str, table_name: str, x_user_id: str = Header(...)) -> dict:
     '''
     retrieve_table_session: Retrieves the latest agent session for a table. It will return all of the agent queries that are for a session.
     '''
 
     # Returns an AgentSession object if it exists, otherwise None. 
-    session = restore_table_session(dataset_id, table_name)
+    session = restore_table_session(x_user_id, dataset_id, table_name)
 
     # No sessions exist, so creating a new one is necessary.
     if session is None:

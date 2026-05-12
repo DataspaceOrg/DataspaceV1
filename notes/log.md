@@ -82,3 +82,5 @@ if there is an existing agent session. If it does then it loads the existing ses
 ## May 11, 2026
 - TODO: Work on adding migrations to the database for the dataset metadata and agent_sessions tables.
 - Creating an initial Dataspace dashboard page.
+
+- Finished initial login and signup using local storage for user information. (Change later on)

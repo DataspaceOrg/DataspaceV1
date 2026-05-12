@@ -1,6 +1,7 @@
 import { type ChangeEvent, useState } from 'react'
 import axios from 'axios';
 
+
 type UploadStatus = "idle" | "uploading" | "success" | "error";
 
 function Upload() {
@@ -9,7 +10,7 @@ function Upload() {
     const [file, setFile] = useState<File | null>(null);
     const [status, setStatus] = useState<UploadStatus>("idle")
     const [pct, setUploadProgress] = useState(0);
-
+    
 
     function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
       // Get the first file, when we select file.
@@ -24,6 +25,9 @@ function Upload() {
       // We are actually uploading the file now. 
       setStatus("uploading");
 
+      // Get the user id from the local storage.
+      const userId = localStorage.getItem('dataspace_user_id');
+
       // Now convert it to form data as we are going to be sending it to the backend server
       // Need to add authentification token here.
       const formData = new FormData();
@@ -31,6 +35,9 @@ function Upload() {
       // axios.post(url, data, config) formData is our request body.
       try {
         const response = await axios.post("http://localhost:8000/db/upload_db", formData, {
+          headers: {
+            'x-user-id': userId, 
+          },
           onUploadProgress: (e) => {
             if (e.total) {
               const set_pct = Math.round((e.loaded / e.total) * 100);

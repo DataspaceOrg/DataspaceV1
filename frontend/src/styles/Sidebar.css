@@ -144,6 +144,29 @@
   display: none;
 }
 
+/* Logout button footer */
+
+.sidebar-footer {
+  padding: 0 1rem;
+  margin-top: auto;
+}
+.sidebar.collapsed .sidebar-footer {
+  display: flex;
+  justify-content: center;
+  padding: 0 0.5rem;
+}
+.sidebar-logout-button {
+  width: 100%;
+}
+.sidebar.collapsed .sidebar-logout-button {
+  width: 3.5rem;
+  height: 3.5rem;
+}
+
+.sidebar-button {
+  width: 100%;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .sidebar {

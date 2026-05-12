@@ -51,11 +51,25 @@ export type RestoreSessionResponse = {
     queries: AgentQuery[];
 }
 
+function getUserId(): string {
+    const userId = localStorage.getItem('dataspace_user_id');
+
+    if (!userId) {
+        throw new Error("User is not logged in.");
+    }
+
+    return userId;
+}
+
 
 export async function fetchDatasets(): Promise<Dataset[]> {
 
     // Currently ste to local backend. 
-    const response = await fetch(`${API_BASE}/db/datasets`);
+    const response = await fetch(`${API_BASE}/db/datasets`, {
+        headers: {
+            'x-user-id': getUserId(),
+        },
+    });
 
     if (!response.ok) {
         throw new Error(`Failed to fetch datasets: ${response.statusText}`);
@@ -66,7 +80,11 @@ export async function fetchDatasets(): Promise<Dataset[]> {
 }
 
 export async function fetchDatasetById(dataset_id: string): Promise<Dataset> {
-    const response = await fetch(`${API_BASE}/db/datasets/${dataset_id}`);
+    const response = await fetch(`${API_BASE}/db/datasets/${dataset_id}`, {
+        headers: {
+            'x-user-id': getUserId(),
+        },
+    });
     // const response = await fetch(`${API_BASE}/db/dataset/${encodeURIComponent(dataset_id)}`);
 
     if (!response.ok) {
@@ -80,7 +98,11 @@ export async function fetchDatasetById(dataset_id: string): Promise<Dataset> {
 export async function restoreTableSession(dataset_id: string, table_name: string): Promise<RestoreSessionResponse> {
 
     const params = new URLSearchParams({ table_name });
-    const response = await fetch(`${API_BASE}/ai/dataset/${dataset_id}/session?${params.toString()}`);
+    const response = await fetch(`${API_BASE}/ai/dataset/${dataset_id}/session?${params.toString()}`, {
+        headers: {
+            'x-user-id': getUserId(),
+        },
+    });
 
     if (!response.ok) {
         throw new Error(`Failed to restore table session: ${response.statusText}`);
@@ -96,7 +118,7 @@ export async function queryInsightAgent(dataset_id: string, body: InsightRequest
     const response = await fetch(`${API_BASE}/ai/dataset/${dataset_id}/insight`,
         {
             method: 'POST',
-            headers: {'Content-Type': 'application/json',},
+            headers: {'Content-Type': 'application/json', 'x-user-id': getUserId()},
             body: JSON.stringify(body),
         }
     );

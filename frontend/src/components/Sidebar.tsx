@@ -69,10 +69,12 @@ function Sidebar() {
         
       </nav>
 
-      <button className="sidebar-button" onClick={handleLogout} title="Logout">
-        <FiLogOut className="sidebar-icon" />
+      <div className="sidebar-footer">
+        <button className="sidebar-button sidebar-logout-button" onClick={handleLogout} title="Logout">
+        <FiLogOut className="sidebar-icon sidebar-logout-icon" />
         <span className="sidebar-label">Logout</span>
-      </button>
+        </button>
+      </div>
     </div>
   )
 }
