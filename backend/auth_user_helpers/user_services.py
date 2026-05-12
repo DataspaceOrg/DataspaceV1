@@ -10,6 +10,8 @@ user_services.py is a module that contains functions to interact with the users 
 It helps provide a way of creating, updating, tracking and storing user information which will then be correlated with datasets and agent sessions. 
 '''
 
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
 def connect_users_db():
     '''
     connect_users_db: Creates the users table if it does not exist and providers a pointer to the connection.
@@ -17,7 +19,7 @@ def connect_users_db():
 
     conn = sqlite3.connect(METADATA_DB)
     conn.execute(f"""
-    CREATE TABLE IF NOT EXISTS {USERS_TABLE} 
+    CREATE TABLE IF NOT EXISTS {USERS_TABLE} (
         user_id TEXT PRIMARY KEY,
         username TEXT NOT NULL UNIQUE,
         email TEXT UNIQUE, 
@@ -47,6 +49,7 @@ def create_user(username: str, email: str | None, password: str) -> UserPublic:
 
     user_id = str(uuid.uuid4())
     now = datetime.now().isoformat()
+
     password_hash = hash_password(password)
 
     conn.execute(f"""
@@ -88,7 +91,7 @@ def get_user_by_id(user_id: str) -> User | None:
 def authenticate_user(email: str, password: str) -> UserPublic | None:
     '''
     authenticate_user authenticates the user (ensures that their credentials are correct) with the user name and password
-    during login. 
+    during login. Checks if the given email associates with a user and if the password hash matches the password inputted.
     '''
 
     conn = connect_users_db()
@@ -106,7 +109,7 @@ def authenticate_user(email: str, password: str) -> UserPublic | None:
     stored_password_hash = row[3]
 
     # Put the user information into the user model.
-    user = UserPublic(user_id=row[0],
+    public_user = UserPublic(user_id=row[0],
     username=row[1], 
     email=row[2], 
     created_at=row[4], 

@@ -8,6 +8,9 @@ function Dashboard() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    // For now using local storage to get the user information.
+    const username = localStorage.getItem('dataspace_username');
+
     useEffect(() => {
         let cancelled = false;
         async function fetchData() {
@@ -39,7 +42,7 @@ function Dashboard() {
     return (
         <div className="dashboard-container">
             {/* Dashboard Goal - Display all of the datasets that are uploaded to the database. */}
-            <h1 className="dashboard-title">Welcome to Dataspace Storage</h1>
+            <h1 className="dashboard-title">Welcome Back, {username}</h1>
             <p className="dashboard-description">Latest Datasets</p>
             <div className="dashboard-datasets">
                 {datasets.length === 0 ? (<p>No Datasets Yet. Upload a New one to get Started!  </p>) : 

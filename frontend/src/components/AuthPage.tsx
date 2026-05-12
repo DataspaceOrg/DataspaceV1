@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { signupUser, loginUser, type AuthResponse } from '../shared/authApi';
+import { registerUser, loginUser, type AuthResponse } from '../shared/authApi';
 
 import '../styles/AuthPage.css';
 
@@ -27,7 +27,7 @@ function AuthPage({ mode }: { mode: AuthMode }) {
         try {
             let user_data: AuthResponse;
             if (SigningUp) {
-                user_data = await signupUser({ username, email, password });
+                user_data = await registerUser({ username, email, password });
             } else {
                 user_data = await loginUser({ email, password });
             }

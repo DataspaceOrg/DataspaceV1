@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { NavLink } from 'react-router-dom'
-import { FiGrid, FiUpload, FiSettings, FiChevronLeft } from 'react-icons/fi'
+import { NavLink, useNavigate } from 'react-router-dom'
+import { FiGrid, FiUpload, FiSettings, FiChevronLeft, FiLogOut } from 'react-icons/fi'
 import dataspaceImage from '../images/Dataspace.png'
 import '../styles/Sidebar.css'
 
@@ -12,10 +12,23 @@ function Sidebar() {
   // State for collapsing the sidebar
   const [isCollapsed, setIsCollapsed] = useState(false)
 
+  // navigate for autodirecting user to hero page if not logged in.
+  const navigate = useNavigate();
+
   // Function to toggle the sidebar
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed)
   }
+
+  function handleLogout() {
+    localStorage.removeItem('dataspace_user_id');
+    localStorage.removeItem('dataspace_username');
+    localStorage.removeItem('dataspace_email');
+    
+    navigate('/');
+  }
+
+
 
   return (
     <div className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
@@ -55,6 +68,11 @@ function Sidebar() {
         </button>
         
       </nav>
+
+      <button className="sidebar-button" onClick={handleLogout} title="Logout">
+        <FiLogOut className="sidebar-icon" />
+        <span className="sidebar-label">Logout</span>
+      </button>
     </div>
   )
 }

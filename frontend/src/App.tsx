@@ -5,6 +5,7 @@ import Upload from './components/Upload'
 import Dataset from './components/Dataset'
 import Dashboard from './components/Dashboard'
 import AuthPage from './components/AuthPage'
+import Hero from './components/Hero'
 
 
 
@@ -22,6 +23,7 @@ function App() {
     
       <div className={isAuthPage ? 'hero-content' : 'main-content'}>
         <Routes>
+          <Route path="/" element={<Hero />} />
           <Route path="/login" element={<AuthPage mode="login" />} />
           <Route path="/signup" element={<AuthPage mode="signup" />} />
           {/* <Route path="/" element={<p>Welcome to Dataspace</p>} /> */}
