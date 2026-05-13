@@ -84,3 +84,36 @@ if there is an existing agent session. If it does then it loads the existing ses
 - Creating an initial Dataspace dashboard page.
 
 - Finished initial login and signup using local storage for user information. (Change later on)
+
+## May 12, 2026
+- Work on adding the initial hero page for the website.
+- Need improvements on the pipeline system. Add core information (Data Profiling)
+
+Notes: Possibly changing the pipeline system
+1. Upload and Parse the data (get the metadata, find sample rows and sessions)
+2. Data Profiling: (Get basic statistics about the data)
+3. Insight Agent: (Use the data profiling, sample rows, metadata to get an initial insight of the data)
+4. Analysis Planning: Agent (use the output from the insight agent to plan the analysis that needs to be done. Classifies the task)
+5. Aggregation agent: (Use the output from the insight agent and the analysis planner to build queries that need to be executed.)
+6. Execution layer: (Execute the queries and scripts. Return the results to the user.)
+7. Synthesis Agent: (Consumes insight, analysis plan, query results, chart specs, profile stats, user context). Produces (findings, explainations, caveats, recommended follow ups)
+8. Follow up agent: Handles user questions after the first analysis has been completed. 
+
+```
+Insight Agent
+  -> "What is this dataset?"
+Data Profiling: (Get basic statistics about the data)
+  -> What are some initial stats for the data?
+Analysis Planning Agent
+  -> "What should we analyze?"
+Aggregation / Query Agent
+  -> "How do we compute it?"
+Visualization Builder Agent
+  -> "How should we show it?"
+Execution Layer
+  -> "Run the queries / validate chart data"
+Synthesis Agent
+  -> "What did we learn?"
+Follow-Up Analyst Agent
+  -> "What should we do next based on the user’s question?"
+  ```

@@ -35,3 +35,6 @@ Have dataset metadata stored in metadata.db database.
 Need user login information to track who is logged in and what datasets they have access to. 
 
 Schema (user_id, email, created_at, datasets_accessable: list[str])
+
+## May 12, 2026 Updates
+- 
