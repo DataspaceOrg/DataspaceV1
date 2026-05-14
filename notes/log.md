@@ -96,14 +96,15 @@ Notes: Possibly changing the pipeline system
 4. Analysis Planning: Agent (use the output from the insight agent to plan the analysis that needs to be done. Classifies the task)
 5. Aggregation agent: (Use the output from the insight agent and the analysis planner to build queries that need to be executed.)
 6. Execution layer: (Execute the queries and scripts. Return the results to the user.)
-7. Synthesis Agent: (Consumes insight, analysis plan, query results, chart specs, profile stats, user context). Produces (findings, explainations, caveats, recommended follow ups)
+7. Synthesis Agent: (Consumes insight, analysis plan, query results, chart specs, profile stats, user context). Produces (findings, explainations, caveats, recommended follow ups) Checks how well it aligned with business goals.
 8. Follow up agent: Handles user questions after the first analysis has been completed. 
 
 ```
-Insight Agent
-  -> "What is this dataset?"
 Data Profiling: (Get basic statistics about the data)
   -> What are some initial stats for the data?
+
+Insight Agent
+  -> "What is this dataset?"
 Analysis Planning Agent
   -> "What should we analyze?"
 Aggregation / Query Agent
@@ -117,3 +118,6 @@ Synthesis Agent
 Follow-Up Analyst Agent
   -> "What should we do next based on the user’s question?"
   ```
+## May 13, 2026
+- Worked on building the data profiling module. 
+- Once again refactoring data analysis model. 

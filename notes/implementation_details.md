@@ -1,40 +1,113 @@
-## 1.1 Implementing Upload File Feature
+## Dataspace Data Analysis.
 
-- We store CSV/JSON Files (tabular) while also writing a Parquet version for large data and analytics. 
-- For SQL Data we may just need 
-- Use DuckDB to query (and to convert formats)
-- Run ML (k-means) using pandas / numpy / scikit-learn loaded from Parquet
+1. Data Profiling Agent
+   → Basic stats, types, distributions. Finds inital correlations that may exist between tables.
+count
+null_count
+null_percent
+mean
+median
+std_dev
+min
+max
+quartiles
+skew
+outlier_count
+zero_count
+negative_count
 
-## 1.2 Dataspace Efficent Retrieval, AI, Immediate Insights
-- On upload for CSV & Tabular JSON, Save raw convert to Parquet having DuckDB convert directory.
-- For SQL Files, we just run it in DuckDB which uses columnar storage for efficient retrieval.
+2. Data Quality Agent
+   → Missing values, duplicates, outliers, suspicious columns
+
+3. Semantic Understanding Agent
+   → What entities, metrics, dates and relationships exist. 
+
+4. Insight Discovery Agent
+   → Purpose is to act as an Initial analytical describer given the previous steps. (Rapidly understands the dataset, identifies promising directions, detect suspicious patterns, seed future investigation)
+
+   Should take in table & relationship profiling. Semantic understanding, sample rows, schema, quality findings, metadata and generate high value exploratory explainations. 
+
+eg: 
+“This appears to be transactional ecommerce data centered around orders and customers.
+
+Revenue and order_date appear to be the primary analytical dimensions.
+
+Initial profiling suggests:
+- strong seasonal behavior,
+- customer segmentation opportunities,
+- possible missing-value bias in customer_type,
+- high variance in revenue distribution.
+
+Likely useful analyses include:
+- cohort retention,
+- regional segmentation,
+- revenue trend analysis,
+- repeat customer behavior.”
+
+5. Dataset Memory Agent
+   → Store reusable context about the dataset
+   eg
+   {
+  "dataset_type": "ecommerce sales",
+  "main_entity": "orders",
+  "time_granularity": "daily",
+  "primary_metric": "revenue",
+  "important_dimensions": [
+    "region",
+    "customer_type",
+    "product_category"
+  ],
+  "quality_issues": [
+    "customer_type missing in 18% of rows"
+  ],
+  "discovered_patterns": [
+    "Revenue spikes on weekends",
+    "West region has highest churn"
+  ],
+  "recommended_analyses": [
+    "cohort analysis",
+    "retention analysis"
+  ]
+}
 
 
-To do list AI feature:
-1. Agent 1: Connect OpenAI API, create an agent (Give it the metadata and a small portion of the dataset) Get immediate insights, ideas about the data, what it might be about. 
+-- NEXT STEPS WILL BE EXPANDED LATER -- 
+7. Hypothesis Agent
+   → Generate possible explanations worth testing
 
-2. Agent 2: Use another agent which takes the aggregations and the queries, uses rows and context from earlier to answer the queries about the data. (Let user know about the results of the queries and findings)
+8. Analysis Planning Agent
+   → Choose analyses based on user goal + dataset context
 
-3. Agent 3: Use a new agent that sees this context, suggests Data visualizations that can help describe the data.
+9. Query / Aggregation Agent
+   → Generate SQL/pandas/duckDB queries
 
-4. Agent 4: Use another agent that takes the insights and the queries, and uses the rows and context from earlier to answer the queries about the data. (Let user know about the results of the queries and findings, help summarize the data.)
+10. Execution + Validation Layer
+   → Run queries, verify outputs, catch bad logic
 
-5. Agent 5: Another agent that also looks at the recommendations, gives suggestions on how to improve the data. 
+11. Visualization Agent
+   → Pick chart types and chart-ready data
 
-ai/ endpoints
+12. Synthesis Agent
+   → Explain what was learned in human terms
 
-POST ai/datasets/{dataset_id}/insight -> Goes to first agent, retrives metadata and information, creates an immediate insight of the data.
-POST ai/datasets/{dataset_id}/suggest_queries -> Goes to second agent, takes the summary and the queries. 
-POST ai/datasets/{dataset_id}/visualize -> Goes to third agent, takes the context and the visualizations.
-POST ai/datasets/{dataset_id}/summary -> Goes to fourth agent, takes the summary and all of its findings via the other agents.
-POST ai/datasets/{dataset_id}/recommendations -> Goes to fifth agent, gives suggestions on how to improve the data, how you can continue to get more insights from the data.
+13. Evidence + Confidence Agent
+   → Attach confidence, caveats, and traceability
 
-Frontend Login Functionality:
+14. Follow-Up Analyst Agent
+   → Suggest next questions or deeper analyses
 
-Have dataset metadata stored in metadata.db database. 
-Need user login information to track who is logged in and what datasets they have access to. 
+15. Memory Update Agent
+   → Save findings, schema meaning, and known issues
 
-Schema (user_id, email, created_at, datasets_accessable: list[str])
-
-## May 12, 2026 Updates
-- 
+1. Ingestion
+2. Table Profiling Service
+3. Data Quality Service
+4. Semantic Understanding Agent
+5. Insight Agent
+6. Dataset Memory Builder
+7. Analysis Planning Agent
+8. Query / Aggregation Agent
+9. Execution Layer
+10. Visualization Agent
+11. Synthesis Agent
+12. Follow-Up Agent
