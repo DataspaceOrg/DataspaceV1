@@ -1,0 +1,1 @@
+## analysis_goals.py is a module that takes in a pdf or text of information that extracts company goals for a dataset
