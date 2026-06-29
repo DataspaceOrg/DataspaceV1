@@ -2,8 +2,8 @@ import duckdb
 import os
 from db_helpers.db_services import get_sample_rows
 from db_helpers.db_metadata import get_dataset_by_id
-from db_helpers.db_agent_session import create_agent_session, update_agent_session, get_agent_session
-from db_helpers.db_agent_queries import create_agent_query, get_agent_query, agent_query_history
+from data_storage.agent_session_storage import create_agent_session, update_agent_session, get_agent_session
+from data_storage.agent_queries_storage import create_agent_query, get_agent_query, agent_query_history
 from openai import OpenAI
 import logging
 import dotenv
@@ -195,7 +195,6 @@ class InsightAgent:
             return {"message": "Insight agent run successfully", "session": self.session, "query": self.agent_query} 
 
 if __name__ == "__main__":
-
     # response1 = InsightAgent("d2808899-d2ab-405c-82e0-3e34c5517913").run_full_agent("ins_feat")
     # print(response1)
     response2 = InsightAgent("56af60ba-ba76-4321-bf83-66454d972ff9").run_full_agent("customers")

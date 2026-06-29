@@ -61,6 +61,7 @@ function getUserId(): string {
     return userId;
 }
 
+/* Dataset API Services */
 
 export async function fetchDatasets(): Promise<Dataset[]> {
 
@@ -112,7 +113,7 @@ export async function restoreTableSession(dataset_id: string, table_name: string
     return session_data;
 }
 
-/* Insight Agent API Functions */
+/* Insight Agent API Services */
 
 export async function queryInsightAgent(dataset_id: string, body: InsightRequest): Promise<InsightResponse> {
     const response = await fetch(`${API_BASE}/ai/dataset/${dataset_id}/insight`,

@@ -1,10 +1,10 @@
 import sqlite3
-from .db_constants import METADATA_DB, AGENT_QUERIES_TABLE, AGENT_SESSIONS_TABLE, AgentSession
+from .storage_models import METADATA_DB, AGENT_QUERIES_TABLE, AGENT_SESSIONS_TABLE, AgentSession
 from datetime import datetime
 import uuid
 
 '''
-db_agent_session.py is a module that contains the functions to create and manage agent sessions for a specific dataset. 
+agent_session_storage.py is a module that contains the functions to create and manage agent sessions for a specific dataset. 
 For each dataset, an agent session is created which helps track the progress of an agent as it works through the dataset. 
 It is connected to the insight agent for initially creating an agent session.
 '''
@@ -83,7 +83,6 @@ def get_agent_session(session_id: str) -> dict:
     '''
     get_agent_session: Retrieves the agent session from the database.
     '''
-
     try:
         conn = connect_agent_session_db()
         cursor = conn.execute(f"SELECT * FROM {AGENT_SESSIONS_TABLE} WHERE session_id = ?", (session_id,))
@@ -115,7 +114,6 @@ def restore_table_session(user_id: str, dataset_id: str, table_name: str) -> Age
         table_name: The name of the table to restore the session for.
     
     '''
-
     conn = connect_agent_session_db()
     cursor = conn.execute(f"""SELECT * FROM {AGENT_SESSIONS_TABLE} WHERE user_id = ? AND dataset_id = ? AND table_name = ?
     ORDER BY updated_at DESC

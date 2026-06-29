@@ -42,7 +42,6 @@ def upload_db(file: UploadFile = File(...), x_user_id: str = Header(...)) -> dic
     Upload db is a service that allows for the frontend to send a request object containing the file to be uploaded to the database. 
 
     '''
-
     # If no file is provided, raise an error.
     if not file.filename:
         raise HTTPException(status_code=400, detail="No file provided")

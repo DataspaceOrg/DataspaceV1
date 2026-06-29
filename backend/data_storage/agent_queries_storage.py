@@ -1,5 +1,5 @@
 import sqlite3
-from .db_constants import METADATA_DB, AGENT_QUERIES_TABLE, AGENT_SESSIONS_TABLE, AgentQuery
+from .storage_models import METADATA_DB, AGENT_QUERIES_TABLE, AGENT_SESSIONS_TABLE, AgentQuery
 from datetime import datetime
 import uuid
 
@@ -62,7 +62,6 @@ def agent_query_history(session_id: str) -> list[AgentQuery]:
     '''
     agent_query_history: Retrieves the agent queries associated with an existing session
     '''
-
     conn = connect_agent_queries_db()
     cursor = conn.execute(f"SELECT * FROM {AGENT_QUERIES_TABLE} WHERE session_id = ? ORDER BY created_at ASC", (session_id,))
     rows = cursor.fetchall()

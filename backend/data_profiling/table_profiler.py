@@ -113,8 +113,6 @@ class TableProfiler:
 
         # 1. Fetch the MIN/MAX/AVG STDDEV from the column. 
         column = quote_name(column_name)
-
-
         #1. numeric values. removes nulls. contains all non null values for that numeric column.
         #2. quartiles - temporary result containign q1 and 23 quartiles and the IQR
         #3. iqr - interquartile range. (spread of the 50% middle of the data) helps track outliers.
@@ -177,15 +175,6 @@ class TableProfiler:
     def table_profile_create():
         pass
 
-
-
-
-
-
-
-    
-
-
 if __name__ == "__main__":
     # Test Dataset
     dataset_metadata = get_dataset_by_id("15e5a145-1e06-4041-bcca-98aeac2248fc", "b13d10fe-e952-4105-ac75-51858467207c")
@@ -200,6 +189,7 @@ if __name__ == "__main__":
     row_count = table_profiler.table_row_count(conn, table_sql_connection)
 
     table_base_column_stats = table_profiler.table_base_column_stats(conn, table_sql_connection, params, "cancel_id")
+    table_distribution_column_stats = table_profiler.table_distribution_column_stats(conn, table_sql_connection, params, "cancel_id")
     breakpoint()
 
 # python3 -m data_profiling.table_profiler

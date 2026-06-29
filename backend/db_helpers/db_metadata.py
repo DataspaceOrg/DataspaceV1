@@ -34,7 +34,6 @@ def connect_metadata_db():
     conn.commit()
     return conn
 
-
 def save_metadata(dataset: Dataset):
     '''
     save_metadata is a function that saves the metadata of a dataset to the metadata database.
