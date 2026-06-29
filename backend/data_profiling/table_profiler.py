@@ -177,11 +177,18 @@ class TableProfiler:
 
 if __name__ == "__main__":
     # Test Dataset
-    dataset_metadata = get_dataset_by_id("15e5a145-1e06-4041-bcca-98aeac2248fc", "b13d10fe-e952-4105-ac75-51858467207c")
+
+    # DB
+    # dataset_metadata = get_dataset_by_id("0cf7ac22-d4cb-4c9c-8600-3d8813784ac5", "5a025d5d-7fe4-4f5e-b9f5-2aa2a42871b1")
+
+    # CSV
+    dataset_metadata = get_dataset_by_id("bffc71df-31ee-401e-9277-776c941115b3", "5a025d5d-7fe4-4f5e-b9f5-2aa2a42871b1")
+
     table_profiler = TableProfiler(dataset_metadata)
 
     # Connect to the database and attach the SQLite database. If it is an SQLite DB.
     conn = table_profiler.connect_db_instance()
+    breakpoint()
     table_profiler.attach_sqlite(conn, dataset_metadata.dataset_path)
 
     table_sql_connection, params = table_profiler.get_table_instance("cancellations")

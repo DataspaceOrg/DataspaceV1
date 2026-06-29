@@ -123,4 +123,9 @@ Follow-Up Analyst Agent
 - Once again refactoring data analysis model. 
 
 ## June 28, 2026
-- Worked on integrating 
+- Worked on refactoring backend structure to have clear seperation of database helpers and storage functionality. 
+- Note: Data storage and database helpers are still modules that interact with ai_helpers. 
+- Next steps is to work on building data profiling module. 
+-> Given a Dataset + table_name, we need to compute reliable table/column facts eg: row count, null count, column count
+-> Return a structured table progile object
+-> Later format the profile into the Insight agent context. (No need to focus on other files except for ones in data_profiling)
