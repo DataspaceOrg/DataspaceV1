@@ -1,11 +1,15 @@
 from fastapi import APIRouter, Query, Header
 from ai_helpers.insight_agent import InsightAgent
-from ai_helpers.ai_constants import InsightRequest
 from data_storage.storage_models import AgentSession, AgentQuery
 from data_storage.agent_session_storage import restore_table_session
 from data_storage.agent_queries_storage import agent_query_history
+from pydantic import BaseModel
 router = APIRouter(prefix="/ai", tags=["ai"])
 
+class InsightRequest(BaseModel):
+    table_name: str
+    dataset_context: str | None = None
+    
 @router.get("/")
 def read_root():
     '''

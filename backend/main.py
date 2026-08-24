@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from db_helpers import db_routes
-from ai_helpers import ai_routes
+from ai_helpers import prompt_agent_service
 from auth_user_helpers import user_routes
 
 app = FastAPI()
@@ -15,7 +15,7 @@ app.add_middleware(
 )
 
 app.include_router(db_routes.router)
-app.include_router(ai_routes.router)
+app.include_router(prompt_agent_service.router)
 app.include_router(user_routes.router)
 
 
