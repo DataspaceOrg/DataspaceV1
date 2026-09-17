@@ -17,14 +17,11 @@ I wanted to work on this project as I often found myself having a bit of trouble
 
 ## Tech Stack
 - React
-- Tailwind CSS
 - TypeScript 
-- Vite
 - Python
 - FastAPI
 - PostgresSQL
-- Docker
-- AWS
+- Azure
 
 ## Project Structure
 
