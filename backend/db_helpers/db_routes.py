@@ -15,10 +15,12 @@ from .db_metadata import save_metadata, list_datasets, get_dataset_by_id
 
 router = APIRouter(prefix="/db", tags=["db"])
 
+
 @router.get("/")
 def read_root():
     # Return a JSON response to the frontend
     return {"message": "Welcome to the DB Helper API"}
+
 
 @router.get("/datasets/{dataset_id}")
 def get_dataset_route(dataset_id: str, x_user_id: str = Header(...)) -> Dataset:
@@ -28,6 +30,7 @@ def get_dataset_route(dataset_id: str, x_user_id: str = Header(...)) -> Dataset:
     '''
     return get_dataset_by_id(dataset_id, x_user_id)
 
+
 @router.get("/datasets")
 def list_datasets_route(x_user_id: str = Header(...)) -> list[Dataset]:
     '''
@@ -36,11 +39,11 @@ def list_datasets_route(x_user_id: str = Header(...)) -> list[Dataset]:
     '''
     return list_datasets(x_user_id)
 
+
 @router.post("/upload_db")
 def upload_db(file: UploadFile = File(...), x_user_id: str = Header(...)) -> dict:
     '''
     Upload db is a service that allows for the frontend to send a request object containing the file to be uploaded to the database. 
-
     '''
     # If no file is provided, raise an error.
     if not file.filename:
@@ -58,7 +61,7 @@ def upload_db(file: UploadFile = File(...), x_user_id: str = Header(...)) -> dic
         # Save raw CSV and Parquet. One logical "table" (the parquet); key = file stem for consistency.
         raw_path, raw_size = save_raw_file(dataset_dir, file)
         parquet_path = save_parquet_file(dataset_dir, raw_path)
-        table_key = parquet_path.stem 
+        table_key = parquet_path.stem
         schema = get_parquet_schema(parquet_path)
 
         new_dataset = Dataset(
@@ -67,7 +70,7 @@ def upload_db(file: UploadFile = File(...), x_user_id: str = Header(...)) -> dic
             upload_type=upload_type,
             raw_byte_size=raw_size,
             dataset_path=str(parquet_path),
-            tables=[table_key], # the table key will be the parquet path. 
+            tables=[table_key],  # the table key will be the parquet path.
             schema=schema,
         )
 
@@ -76,7 +79,6 @@ def upload_db(file: UploadFile = File(...), x_user_id: str = Header(...)) -> dic
         raw_path, raw_size = save_raw_file(dataset_dir, file)
         table_names = get_sqlite_table_names(raw_path)
 
-    
         # tables = {name: str(raw_path) for name in table_names}
         schema = get_sqlite_schema(raw_path)
 
@@ -96,6 +98,5 @@ def upload_db(file: UploadFile = File(...), x_user_id: str = Header(...)) -> dic
         save_metadata(new_dataset)
         return {"message": "File uploaded successfully"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error saving metadata: {e}")
-
-    
+        raise HTTPException(
+            status_code=500, detail=f"Error saving metadata: {e}")

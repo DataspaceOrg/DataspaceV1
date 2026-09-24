@@ -1,9 +1,10 @@
 from fastapi import APIRouter, HTTPException
-from auth_user_helpers.user_services import create_user, authenticate_user
+from auth_user_helpers.user_services import get_user_by_id, create_user, authenticate_user
 from auth_user_helpers.user_models import UserCreate, UserLogin
 from auth_user_helpers.user_models import User, UserPublic, AuthResponse
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+
 
 @router.post("/register")
 def register_user(body: UserCreate) -> AuthResponse:
@@ -15,7 +16,7 @@ def register_user(body: UserCreate) -> AuthResponse:
     '''
 
     try:
-    # Create user returns a UserPublic object.
+        # Create user returns a UserPublic object.
         new_user = create_user(
             username=body.username,
             email=body.email,
@@ -23,7 +24,9 @@ def register_user(body: UserCreate) -> AuthResponse:
         )
         return AuthResponse(message="User registered successfully", user=new_user)
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Could not create user: {e}")
+        raise HTTPException(
+            status_code=400, detail=f"Could not create user: {e}")
+
 
 @router.post("/login")
 def login(body: UserLogin) -> AuthResponse:
@@ -37,6 +40,7 @@ def login(body: UserLogin) -> AuthResponse:
 
     return AuthResponse(message="Login successful", user=public_user)
 
+
 @router.get("/users/{user_id}")
 def get_user(user_id: str) -> dict:
     user = get_user_by_id(user_id)
@@ -45,6 +49,3 @@ def get_user(user_id: str) -> dict:
         raise HTTPException(status_code=404, detail="User not found")
 
     return {"message": "User retrieved successfully", "user": user}
-
-
-    

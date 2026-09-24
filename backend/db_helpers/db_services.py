@@ -13,6 +13,7 @@ db_services.py is a module that contains the functions to interact with the data
 This is different from the db_metadata which contains the functions to interact with the metadata database.
 '''
 
+
 def detect_upload_type(filename: str):
     '''
     detect_upload_type is a function that detects the type of the file that is being uploaded.
@@ -26,18 +27,13 @@ def detect_upload_type(filename: str):
 
     if extension == ".csv":
         return "csv"
-    elif extension == ".json":
-        return "json"
-    elif extension == ".jsonl":
-        return "jsonl"
     elif extension == ".db":
         return "db"
     elif extension == ".sqlite":
         return "sqlite"
-    elif extension == ".sql_dump":
-        return "sql_dump"
     else:
         return "unknown"
+
 
 def save_raw_file(dataset_dir: Path, file: UploadFile) -> Path:
     '''
@@ -54,7 +50,8 @@ def save_raw_file(dataset_dir: Path, file: UploadFile) -> Path:
     '''
 
     if not dataset_dir.exists():
-        raise FileNotFoundError(f"Dataset directory {dataset_dir} does not exist.")
+        raise FileNotFoundError(
+            f"Dataset directory {dataset_dir} does not exist.")
 
     raw_saving_path = dataset_dir / f"{file.filename}"
     size = 0
@@ -74,6 +71,7 @@ def save_raw_file(dataset_dir: Path, file: UploadFile) -> Path:
     # returns raw_saving_path(Path), size(int)
     return raw_saving_path, size
 
+
 def save_parquet_file(dataset_dir: Path, raw_csv_path: Path) -> Path:
     '''
     save_parquet_file is a function that saves the parquet file to the dataset directory. 
@@ -87,15 +85,16 @@ def save_parquet_file(dataset_dir: Path, raw_csv_path: Path) -> Path:
         Path - The path to the saved parquet file. eg) format -> datasets/uuid/tables/file_name.parquet
     '''
 
-    # Make a tables directory for storing a parquet file. 
+    # Make a tables directory for storing a parquet file.
     tables_dir = dataset_dir / "tables"
     tables_dir.mkdir(parents=True, exist_ok=True)
 
-    parquet_path = tables_dir / f"{raw_csv_path.stem}.parquet" 
-    # read the csv file from its path and write it to the parquet file in the tables directory where we want to store it. 
+    parquet_path = tables_dir / f"{raw_csv_path.stem}.parquet"
+    # read the csv file from its path and write it to the parquet file in the tables directory where we want to store it.
     duckdb.read_csv(str(raw_csv_path)).write_parquet(str(parquet_path))
 
     return parquet_path
+
 
 def get_parquet_schema(parquet_path: Path) -> dict[str, str]:
     '''
@@ -105,18 +104,20 @@ def get_parquet_schema(parquet_path: Path) -> dict[str, str]:
 
     Args: 
         parquet_path: Path - The path to the parquet file.
-    
+
     Returns:
         dict[str, dict[str, str]] - The schema of the parquet file.
     '''
 
     schema: dict[str, dict[str, str]] = {}
-    result = duckdb.execute("DESCRIBE (SELECT * FROM read_parquet(?))", [str(parquet_path)]).fetchall()
+    result = duckdb.execute(
+        "DESCRIBE (SELECT * FROM read_parquet(?))", [str(parquet_path)]).fetchall()
 
     # eg return) {"column_name": "TYPE"}
-    # parquet_path.stem is the name of the parquet file without the extension. 
+    # parquet_path.stem is the name of the parquet file without the extension.
     schema[parquet_path.stem] = {column[0]: column[1] for column in result}
     return schema
+
 
 def get_sqlite_table_names(sqlite_path: Path) -> list[str]:
     '''
@@ -134,7 +135,7 @@ def get_sqlite_table_names(sqlite_path: Path) -> list[str]:
     sqlite_conn = sqlite3.connect(str(sqlite_path))
     # Get the table names from the sqlite database.
     cursor = sqlite_conn.execute(
-            "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name")
+        "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name")
 
     table_names = cursor.fetchall()
 
@@ -159,11 +160,12 @@ def get_sqlite_schema(sqlite_path: Path) -> dict:
 
     conn = sqlite3.connect(str(sqlite_path))
 
-    # For each table get the information about the table, getting the column names and their types. 
+    # For each table get the information about the table, getting the column names and their types.
     for table in table_names:
         # Fetching all of the columns in the table and their types
         cursor = conn.execute(f"PRAGMA table_info({table})")
-        schema[table] = {column[1]: column[2] or "TEXT" for column in cursor.fetchall()}
+        schema[table] = {column[1]: column[2]
+                         or "TEXT" for column in cursor.fetchall()}
 
     return schema
 
@@ -179,25 +181,28 @@ def get_sample_rows(dataset: Dataset, num_rows: int, table_name: str) -> list[di
     if table_name is None:
         raise ValueError("No table name provided.")
 
-    #Initialize duckDB connection.
+    # Initialize duckDB connection.
     conn = duckdb.connect()
     dataset_path = dataset.dataset_path
 
     try:
         if dataset.upload_type == "csv":
             # If csv then we load in the parquet file and return the sample rows. There is only one table in the dataset.
-            dataframe = conn.execute("SELECT * FROM read_parquet(?) LIMIT ?", [dataset_path, num_rows]).fetchdf()
+            dataframe = conn.execute(
+                "SELECT * FROM read_parquet(?) LIMIT ?", [dataset_path, num_rows]).fetchdf()
 
-        # If its a db type then it is an sqlite database. 
+        # If its a db type then it is an sqlite database.
         elif dataset.upload_type == "db":
             # if sqlite then we moust attach the sqlite file into DuckDB and expose it with the name sqlite_db.
-            conn.execute(f"ATTACH DATABASE '{dataset_path}' AS sqlite_db (TYPE sqlite)")
-            dataframe = conn.execute(f"SELECT * FROM sqlite_db.{table_name} LIMIT ?", [num_rows]).fetchdf()
+            conn.execute(
+                f"ATTACH DATABASE '{dataset_path}' AS sqlite_db (TYPE sqlite)")
+            dataframe = conn.execute(
+                f"SELECT * FROM sqlite_db.{table_name} LIMIT ?", [num_rows]).fetchdf()
 
     finally:
         conn.close()
 
-    return dataframe.to_dict(orient="records")    
+    return dataframe.to_dict(orient="records")
 
 # Potential next functions to add
 # - Save JSON Files
@@ -209,5 +214,4 @@ if __name__ == "__main__":
     pass
 
 
-    
 # running python3 -m db_helpers.db_services
