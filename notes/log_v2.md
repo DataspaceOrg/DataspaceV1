@@ -12,4 +12,10 @@ Added:
 .env with Azure_tenant_id, external invites can recieve an invitation and membership into dataspace-developers.
 Use the same tenant_id configuration
 
-Each teammate signs in with their own account, when the script opens the browser the shared settings identify the destination; their group membership grants access.
+- Invite to Entra directory and have them accept
+- Add to dataspace-developers
+- allow for their Ipv4 address
+
+- Get the shared connection, put into backend/.env
+- Install the dependencies for their python environment
+- install Azure CLI brew install azure-cli openssl

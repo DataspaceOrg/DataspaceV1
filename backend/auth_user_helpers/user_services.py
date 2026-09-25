@@ -12,6 +12,7 @@ It helps provide a way of creating, updating, tracking and storing user informat
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+
 def connect_users_db():
     '''
     connect_users_db: Creates the users table if it does not exist and providers a pointer to the connection.
@@ -38,11 +39,13 @@ def hash_password(password: str) -> str:
     '''
     return pwd_context.hash(password)
 
+
 def verify_password(password: str, password_hash: str) -> bool:
     '''
     verify_password verifies the user inputted password with the password hash.
     '''
     return pwd_context.verify(password, password_hash)
+
 
 def create_user(username: str, email: str | None, password: str) -> UserPublic:
     conn = connect_users_db()
@@ -69,6 +72,7 @@ def create_user(username: str, email: str | None, password: str) -> UserPublic:
         updated_at=now
     )
 
+
 def get_user_by_id(user_id: str) -> User | None:
 
     conn = connect_users_db()
@@ -82,11 +86,12 @@ def get_user_by_id(user_id: str) -> User | None:
         return None
 
     return User(user_id=row[0],
-    username=row[1], 
-    email=row[2], 
-    password_hash=row[3], 
-    created_at=row[4], 
-    updated_at=row[5])
+                username=row[1],
+                email=row[2],
+                password_hash=row[3],
+                created_at=row[4],
+                updated_at=row[5])
+
 
 def authenticate_user(email: str, password: str) -> UserPublic | None:
     '''
@@ -96,7 +101,7 @@ def authenticate_user(email: str, password: str) -> UserPublic | None:
 
     conn = connect_users_db()
 
-    # Perform a verification by fetching their email login. 
+    # Perform a verification by fetching their email login.
     cursor = conn.execute(f"""
     SELECT * FROM {USERS_TABLE} WHERE email = ?
     """, (email,))
@@ -110,25 +115,21 @@ def authenticate_user(email: str, password: str) -> UserPublic | None:
 
     # Put the user information into the user model.
     public_user = UserPublic(user_id=row[0],
-    username=row[1], 
-    email=row[2], 
-    created_at=row[4], 
-    updated_at=row[5])
+                             username=row[1],
+                             email=row[2],
+                             created_at=row[4],
+                             updated_at=row[5])
 
-    # Verify the password hash with the inputted password. 
+    # Verify the password hash with the inputted password.
     password_valid = verify_password(password, stored_password_hash)
-
-
+    ß
     if not password_valid:
         # Return none for password invalid, indicates that the password is incorrect.
         return None
 
-    # Correct credentials, return the user. 
+    # Correct credentials, return the user.
     return public_user
+
 
 def update_user():
     pass
-
-
-
-

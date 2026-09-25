@@ -8,7 +8,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"], 
+    allow_origins=["http://localhost:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -17,7 +17,5 @@ app.add_middleware(
 app.include_router(db_routes.router)
 app.include_router(prompt_agent_service.router)
 app.include_router(user_routes.router)
-
-
 
 # uvicorn main:app --reload
