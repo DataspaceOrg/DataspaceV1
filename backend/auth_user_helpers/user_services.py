@@ -122,7 +122,6 @@ def authenticate_user(email: str, password: str) -> UserPublic | None:
 
     # Verify the password hash with the inputted password.
     password_valid = verify_password(password, stored_password_hash)
-    ß
     if not password_valid:
         # Return none for password invalid, indicates that the password is incorrect.
         return None

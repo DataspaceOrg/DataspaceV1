@@ -19,3 +19,8 @@ Use the same tenant_id configuration
 - Get the shared connection, put into backend/.env
 - Install the dependencies for their python environment
 - install Azure CLI brew install azure-cli openssl
+
+## Sept 25, 2026
+
+- Build new SQL tables for Azure.
+- Configure blob storage uploading.
