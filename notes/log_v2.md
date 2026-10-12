@@ -24,3 +24,9 @@ Use the same tenant_id configuration
 
 - Build new SQL tables for Azure.
 - Configure blob storage uploading.
+
+## Oct 5, 2026
+
+- Created Azure blob storage and login.
+- Refactor database & storage to use environment connection keys instead of logging in each time?
+- Need to make working with azure easier.

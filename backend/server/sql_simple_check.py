@@ -2,14 +2,12 @@ import os
 from pathlib import Path
 
 from dotenv import load_dotenv
-from azure.identity import InteractiveBrowserCredential
+from azure.identity import DefaultAzureCredential
 from mssql_python import connect
 
 load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
-credential = InteractiveBrowserCredential(
-    tenant_id=os.environ["AZURE_TENANT_ID"]
-)
+credential = DefaultAzureCredential()
 
 conn = connect(
     os.environ["SQL_CONNECTION_STRING"],
