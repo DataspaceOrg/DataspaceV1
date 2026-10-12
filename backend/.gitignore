@@ -4,3 +4,4 @@ __pycache__
 .
 datasets/
 db_helpers/test_data
+env/
