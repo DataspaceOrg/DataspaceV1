@@ -24,6 +24,10 @@
   font-weight: 600;
 }
 
+.container {
+  max-width: 1200px;
+}
+
 /* Utility classes for logo if needed */
 .logo {
   height: 6em;
@@ -37,4 +41,3 @@
 .logo.react:hover {
   filter: drop-shadow(0 0 2em #61dafbaa);
 }
-
