@@ -8,6 +8,7 @@ from uuid import uuid4
 
 class DatasetService:
 
+    @staticmethod
     def detect_upload_type(filename: str):
         extension = Path(filename).suffix.lower()
 
@@ -27,9 +28,9 @@ class DatasetService:
 
         # temporary dataset_id
         dataset_id = str(uuid4())
-        extension = Path(file.filename or "").suffix.lower()
-        blob_name = f"{dataset_id}/original{extension}"
-        # Add conditional check here.
+        upload_type = DatasetService.detect_upload_type(file.filename or "")
+        # Add conditional check.
+        blob_name = f"{dataset_id}/{file.filename}"
         file.file.seek(0)
 
         default_credential = DefaultAzureCredential()
