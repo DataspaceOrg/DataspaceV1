@@ -1,99 +1,105 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { registerUser, loginUser, type AuthResponse } from '../shared/authApi';
-
-import '../styles/AuthPage.css';
-
-
-type AuthMode = "login" | "signup";
-
-function AuthPage({ mode }: { mode: AuthMode }) {
-
-    const SigningUp = mode === "signup";
-
-    const [username, setUsername] = useState("");
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [error, setError] = useState<string | null>(null);
-    const [submitting, setSubmitting] = useState(false);
-    const navigate = useNavigate();
-
-    async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-        e.preventDefault();
-        setError(null);
-        // Set the submitting state to true to disable the submit button.
-        setSubmitting(true);
-
-        try {
-            let user_data: AuthResponse;
-            if (SigningUp) {
-                user_data = await registerUser({ username, email, password });
-            } else {
-                user_data = await loginUser({ email, password });
-            }
-
-            // Set local storage paramters for our session. 
-            localStorage.setItem('dataspace_user_id', user_data.user.user_id);
-            localStorage.setItem('dataspace_username', user_data.user.username);
-            localStorage.setItem('dataspace_email', user_data.user.email);
-
-            // Navigate to the dashboard page.
-            navigate('/dashboard');
-
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'An unknown error occurred');
-        } finally {
-            setSubmitting(false);
-        }
-
+import { useRef, useState, type FormEvent } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { loginUser, registerUser } from "../shared/authApi";
+import { errorMessage } from "../shared/http";
+import { clearWorkspace } from "../shared/workspace";
+import { Button, Feedback, Field } from "./ui";
+export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
+  const signup = mode === "signup";
+  const [username, setUsername] = useState(""),
+    [email, setEmail] = useState(""),
+    [password, setPassword] = useState(""),
+    [error, setError] = useState(""),
+    [pending, setPending] = useState(false);
+  const navigate = useNavigate(),
+    busy = useRef(false);
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    if (busy.current) return;
+    busy.current = true;
+    setPending(true);
+    setError("");
+    try {
+      const response = await (signup
+        ? registerUser({ username, email, password })
+        : loginUser({ email, password }));
+      clearWorkspace();
+      localStorage.setItem("dataspace_user_id", response.user.user_id);
+      localStorage.setItem("dataspace_username", response.user.username);
+      localStorage.setItem("dataspace_email", response.user.email);
+      navigate("/dashboard");
+    } catch (failure) {
+      setError(errorMessage(failure));
+    } finally {
+      busy.current = false;
+      setPending(false);
     }
-
-    return (
-        <div className="auth-page">
-            <div className="auth-card">
-                <div className="auth-header">
-                    <h1>{SigningUp ? "Create your Account" : "Login to Dataspace"}</h1>
-                    <p>{SigningUp ? "Sign up to start learning more about the power of your data" : "Welcome back. Log in to continue working with your datasets."}</p>
-                </div>
-                <form className="auth-form" onSubmit={handleSubmit}>
-                    {/* If signing up is true. Then a username is needed to create an account. Email and password are needed regardless of logging in or signing up. */}
-                    { SigningUp && (
-                        <label className="auth-field">
-                            <p>Username</p>
-                            <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Enter your username" required />
-                        </label>
-                    )}
-
-                    <label className="auth-field">
-                        <p>Email</p>
-                        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter your email" required />
-                    </label>
-
-                    <label className="auth-field">
-                        <p>Password</p>
-                        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Enter your password" required />
-                    </label>
-
-                    {error && <p className="error-message">{error}</p>}
-
-                    {/* Display different test if we are signing up or logging in.  */}
-                    <button className="auth-submit-button" type="submit" disabled={submitting}>
-                        {submitting ? SigningUp ? "Signing Up..." : "Logging In..." : SigningUp ? "Create Account" : "Login"}
-                    </button>
-                </form>
-                <div className="auth-switch">
-                    {
-                        SigningUp ? (
-                            <p>Already have an account? <Link to="/login" className="auth-switch-link">Login</Link></p>
-                        ) : (
-                            <p>Don't have an account? <Link to="/signup" className="auth-switch-link">Sign up</Link></p>
-                        )
-                    }
-                </div>
-            </div>    
-        </div>
-    )
-
+  }
+  return (
+    <div className="public-page">
+      <header className="public-nav">
+        <Link className="brand" to="/">
+          dataspace
+        </Link>
+        <Link to={signup ? "/login" : "/signup"}>
+          {signup ? "Log in" : "Create account"}
+        </Link>
+      </header>
+      <main className="auth-wrap">
+        <h1>{signup ? "Create account" : "Log in"}</h1>
+        <form onSubmit={submit}>
+          {signup && (
+            <Field label="Username" htmlFor="username">
+              <input
+                id="username"
+                autoComplete="username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+                disabled={pending}
+              />
+            </Field>
+          )}
+          <Field label="Email" htmlFor="email">
+            <input
+              id="email"
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              disabled={pending}
+            />
+          </Field>
+          <Field label="Password" htmlFor="password">
+            <input
+              id="password"
+              type="password"
+              autoComplete={signup ? "new-password" : "current-password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              disabled={pending}
+            />
+          </Field>
+          {error && <Feedback error>{error}</Feedback>}
+          <Button type="submit" className="primary" disabled={pending}>
+            {pending
+              ? signup
+                ? "Creating account…"
+                : "Logging in…"
+              : signup
+                ? "Create account"
+                : "Log in"}
+          </Button>
+        </form>
+        <p className="auth-switch muted small">
+          {signup ? "Already have an account? " : "New to Dataspace? "}
+          <Link to={signup ? "/login" : "/signup"}>
+            {signup ? "Log in" : "Create account"}
+          </Link>
+        </p>
+      </main>
+    </div>
+  );
 }
-
-export default AuthPage;
