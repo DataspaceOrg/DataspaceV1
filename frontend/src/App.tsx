@@ -4,7 +4,7 @@ import Sidebar from "./components/Sidebar";
 import Dashboard from "./components/Dashboard";
 import Upload from "./components/Upload";
 import Dataset from "./components/Dataset";
-import Hero from "./components/Hero";
+import LandingPage from "./features/landing/LandingPage";
 import AuthPage from "./components/AuthPage";
 function Workspace() {
   const location = useLocation();
@@ -29,7 +29,7 @@ function Workspace() {
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<Hero />} />
+      <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<AuthPage key="login" mode="login" />} />
       <Route path="/signup" element={<AuthPage key="signup" mode="signup" />} />
       <Route element={<Workspace />}>
