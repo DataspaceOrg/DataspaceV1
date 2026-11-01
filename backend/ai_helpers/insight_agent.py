@@ -1,6 +1,6 @@
 import duckdb
 import os
-from db_helpers.db_services import get_sample_rows
+from db_helpers.db_services import get_random_sample_rows
 from db_helpers.db_metadata import get_dataset_by_id
 from data_storage.agent_session_storage import create_agent_session, update_agent_session, get_agent_session
 from data_storage.agent_queries_storage import create_agent_query, get_agent_query, agent_query_history
@@ -49,8 +49,8 @@ class InsightAgent:
 
     def retrieve_sample_rows(self, table_name: str):
         '''
-        Retrieve the sample rows of the dataset from the database.
-        Currently uses first 10 rows.
+        Retrieve the random row sample from the dataset.
+        Currently fetches a random sample of up to 100 rows.
         '''
 
         if table_name is None:
@@ -59,7 +59,7 @@ class InsightAgent:
         if table_name not in self.dataset.tables:
             raise ValueError(f"Table {table_name} not found in the dataset.")
 
-        sample_rows = get_sample_rows(self.dataset, 10, table_name)
+        sample_rows = get_random_sample_rows(self.dataset, 100, table_name)
         self.sample_rows = sample_rows
 
         return sample_rows

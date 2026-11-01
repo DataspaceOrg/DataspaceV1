@@ -169,11 +169,10 @@ def get_sqlite_schema(sqlite_path: Path) -> dict:
 
     return schema
 
-
-def get_sample_rows(dataset: Dataset, num_rows: int, table_name: str) -> list[dict[str, any]]:
+def get_random_sample_rows(dataset: Dataset, num_rows: int, table_name: str) -> list[dict[str, any]]:
     '''
-    get_sample_rows is a db_helper function that gets the sample rows from a dataset and returns them as a list of dictionaries.
-    If table name is none then we will return none.
+    get_random_sample_rows is a db_helper function that gets the sample rows from a dataset and returns them as a list of dictionaries.
+    get_random_samples_rows get a random sample of rows from the dataset(only for CSV). If table name is none then we will return none.
 
     For CSV -> Parquet: we will read the parquet file and return the sample rows.
     For SQLite we will read the SQLite database and return the sample rows. 
@@ -185,11 +184,13 @@ def get_sample_rows(dataset: Dataset, num_rows: int, table_name: str) -> list[di
     conn = duckdb.connect()
     dataset_path = dataset.dataset_path
 
+    int_rows = int(num_rows)
+
     try:
         if dataset.upload_type == "csv":
             # If csv then we load in the parquet file and return the sample rows. There is only one table in the dataset.
             dataframe = conn.execute(
-                "SELECT * FROM read_parquet(?) LIMIT ?", [dataset_path, num_rows]).fetchdf()
+                f"SELECT * FROM read_parquet(?) USING SAMPLE reservoir({int_rows} ROWS) REPEATABLE (42)", [dataset_path]).fetchdf()
 
         # If its a db type then it is an sqlite database.
         elif dataset.upload_type == "db":
