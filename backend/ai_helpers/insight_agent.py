@@ -4,7 +4,7 @@ from db_helpers.db_services import get_sample_rows
 from db_helpers.db_metadata import get_dataset_by_id
 from data_storage.agent_session_storage import create_agent_session, update_agent_session, get_agent_session
 from data_storage.agent_queries_storage import create_agent_query, get_agent_query, agent_query_history
-from openai import OpenAI
+from google import genai
 import logging
 import dotenv
 from datetime import datetime
@@ -50,6 +50,7 @@ class InsightAgent:
     def retrieve_sample_rows(self, table_name: str):
         '''
         Retrieve the sample rows of the dataset from the database.
+        Currently uses first 10 rows.
         '''
 
         if table_name is None:
@@ -119,7 +120,7 @@ class InsightAgent:
         '''
 
         context_block = ""
-        
+
         # If the dataset context is provided, add it to the system prompt.
         if dataset_context and dataset_context.strip():
             self.dataset_context = dataset_context.strip()
@@ -154,18 +155,36 @@ class InsightAgent:
         self.system_prompt = system_prompt
 
     def run_agent(self) -> str:
+        try:
+            client = genai.Client()
 
-        client = OpenAI()
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": self.system_prompt},
-                {"role": "user", "content": "Write a short overview of what the dataset is about, what the main columns mean, and 2–3 brief insights from the sample."}
-            ]
-        )
+            # Combine system prompt and user request
+            full_prompt = f"{self.system_prompt}\n\nUser: Write a short overview of what the dataset is about, what the main columns mean, and 2–3 brief insights from the sample."
 
-        # Create a query for the agent query, user input prompt is temporary.
-        return create_agent_query(self.session.session_id, "insight", self.dataset_context, response.choices[0].message.content, datetime.now().isoformat())
+            logging.info(f"Sending request to Gemini for dataset {self.dataset_id}")
+
+            response = client.models.generate_content(
+                model="gemini-3.1-flash-lite",
+                contents=full_prompt
+            )
+
+            # Extract the text content from the response
+            response_text = response.text if hasattr(response, 'text') else str(response)
+
+            logging.info(f"Successfully received response from Gemini: {len(response_text)} characters")
+
+            # Create a query for the agent query
+            return create_agent_query(
+                self.session.session_id,
+                "insight",
+                self.dataset_context,
+                response_text,
+                datetime.now().isoformat()
+            )
+        except Exception as e:
+            logging.error(f"Error in run_agent: {str(e)}", exc_info=True)
+            raise
+
 
     def run_full_agent(self, table_name: str, dataset_context: str | None = None) -> dict:
 
