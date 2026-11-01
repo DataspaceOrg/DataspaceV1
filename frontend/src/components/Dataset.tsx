@@ -8,6 +8,7 @@ function Dataset() {
     const [dataset, setDataset] = useState<DatasetModel | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [insightAgentError, setInsightAgentError] = useState<string | null>(null);
     const [insightMessage, setInsightMessage] = useState<string | null>(null);
     const [selectedTable, setSelectedTable] = useState<string | null>(null);
     const [datasetContext, setDatasetContext] = useState('');
@@ -85,6 +86,9 @@ function Dataset() {
             setInsightMessage(latestInsight?.response_output ?? null);
         }
 
+        //reset insightAgentError between tables
+        setInsightAgentError(null)
+
         restoreSession(dataset_id, selectedTable);
         // Cleanup function for when the component is unmounted (i.e if the user navigates away from the dataset page).
         return () => {
@@ -93,7 +97,19 @@ function Dataset() {
     }, [dataset_id, selectedTable]);
 
     if (loading) return <div className="dataset-page">Loading…</div>;
-    if (error) return <div className="dataset-page">Error: {error}</div>;
+
+    //Allow user to navigate back (reload) page on error.
+    if (error) {
+    return (
+        <div className="dataset-page">
+            <p>Error: {error}</p>
+            <Link to="/dashboard">Back to Datasets</Link>
+            <button className="dataset-button dataset-button-secondary" onClick={() => window.location.reload()}>
+                Try Again
+            </button>
+        </div>
+    );
+}
 
     const handleInsightClick = async () => {
         // If there is no table selected then set the insight message to ask for a table to be selected. 
@@ -103,15 +119,18 @@ function Dataset() {
         }
 
         if (!dataset_id) {
-            setError('Dataset ID is required');
+            setInsightAgentError('Dataset ID is required');
             return;
         }
+
+        //Reset insightAgentError to clear the last error
+        setInsightAgentError(null)
 
         try {
             const response = await queryInsightAgent(dataset_id, { table_name: selectedTable, dataset_context: datasetContext, });
             setInsightMessage(response.query.response_output);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'An unknown error occurred');
+            setInsightAgentError(err instanceof Error ? err.message : 'An unknown error occurred');     
         }
     };
     // Set the schema of the selected table. dataset?.schema?.[selectedTable] checks if there is an existing schema, if its null then return null. 
@@ -256,6 +275,9 @@ function Dataset() {
                                     Run Insight Agent
                                     </button>
                                 </div>
+                                {insightAgentError && (<p className="agent-error-message" role="alert">
+                                    {insightAgentError}
+                                </p>)}
                                 {insightMessage && <div className="agent-output-card">
                                         {/* Pre for markdown rendering.  */}
                                         <pre className="agent-markdown-render">{insightMessage}</pre>

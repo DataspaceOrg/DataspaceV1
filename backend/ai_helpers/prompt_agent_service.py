@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Query, Header
+from fastapi import APIRouter, Query, Header, HTTPException
 from ai_helpers.insight_agent import InsightAgent
 from data_storage.storage_models import AgentSession, AgentQuery
 from data_storage.agent_session_storage import restore_table_session
 from data_storage.agent_queries_storage import agent_query_history
 from pydantic import BaseModel
+import logging
 router = APIRouter(prefix="/ai", tags=["ai"])
 
 class InsightRequest(BaseModel):
@@ -24,13 +25,20 @@ def get_insight(dataset_id: str, body: InsightRequest, x_user_id: str = Header(.
     Get insight is a service that allows for the frontend to get an immediate insight of the data.
     '''
 
-    # create an insight agent for the given dataset and user.
+    # Set up logger to handel insight agent errors. 
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger(__name__)
 
-    insight_agent = InsightAgent(dataset_id, x_user_id)
-    insight_response = insight_agent.run_full_agent(
-        table_name=body.table_name,
-        dataset_context=body.dataset_context,
-    )
+    # create an insight agent for the given dataset and user.
+    try:
+        insight_agent = InsightAgent(dataset_id, x_user_id)
+        insight_response = insight_agent.run_full_agent(
+            table_name=body.table_name,
+            dataset_context=body.dataset_context,
+        )
+    except Exception:
+        logger.exception("Insight agent failed for dataset %s", dataset_id)
+        raise HTTPException(status_code=500, detail="The insight agent could not complete. Please try again.")
 
     # insight_response is a dictionary with the format of the frontend InsightResponse type. {"message": "Insight agent run successfully", "session": AgentSession, "query": AgentQuery}
     return insight_response

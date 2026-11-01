@@ -466,6 +466,11 @@
   font-size: 1.35rem;
 }
 
+.agent-error-message {
+  margin-top: 12px;
+  color: #b42318;
+}
+
 /* Responsive */
 @media (max-width: 1100px) {
   .dataset-summary-grid {

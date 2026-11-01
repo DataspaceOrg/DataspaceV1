@@ -125,7 +125,9 @@ export async function queryInsightAgent(dataset_id: string, body: InsightRequest
     );
 
     if (!response.ok) {
-        throw new Error(`Failed to run insight agent: ${response.statusText}`);
+        const errorBody = await response.json().catch(() => null);
+        const message = typeof errorBody?.detail === 'string' ? errorBody.detail : response.statusText;
+        throw new Error(`Failed to run insight agent: ${message}`);
     }
 
     const data = await response.json()
