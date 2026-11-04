@@ -1,5 +1,8 @@
 import { type ChangeEvent, useState } from "react";
 import axios from "axios";
+import "../styles/Upload.css";
+
+import "../styles/Upload.css";
 
 type UploadStatus = "idle" | "uploading" | "success" | "error";
 
@@ -88,7 +91,8 @@ function Upload() {
     <div>
       <h1 className="text-2xl font-bold mb-4">Upload File</h1>
       <input
-        className="mb-4 w-full text-lg"
+        className="upload-file-input"
+        aria-label="Choose a file for local upload"
         type="file"
         onChange={handleFileChange}
       />
@@ -118,7 +122,8 @@ function Upload() {
       <div>
         <h1 className="text-2xl font-bold mb-4">Upload File Dataset </h1>
         <input
-          className="mb-4 w-full text-lg"
+          className="upload-file-input"
+          aria-label="Choose a file for dataset upload"
           type="file"
           onChange={handleFileChange}
         />
