@@ -1,13 +1,10 @@
 CREATE TABLE Conversation (
-    id               UNIQUEIDENTIFIER NOT NULL
-                     CONSTRAINT PK_Conversation PRIMARY KEY DEFAULT NEWID(),
-    session_id       UNIQUEIDENTIFIER NOT NULL
-                     CONSTRAINT FK_Conversation_Session REFERENCES [Session](id),
-    pipeline_id      UNIQUEIDENTIFIER NULL         -- NULL for chats not tied to a pipeline run
-                     CONSTRAINT FK_Conversation_AgentPipeline REFERENCES AgentPipeline(id),
-    messages_json    NVARCHAR(MAX)    NULL,        -- JSON
-    response_json    NVARCHAR(MAX)    NULL,        -- JSON
-    response_output  NVARCHAR(MAX)    NULL,        -- final text shown to the user
+    id               UNIQUEIDENTIFIER NOT NULL CONSTRAINT PK_Conversation PRIMARY KEY DEFAULT NEWID(),
+    session_id       UNIQUEIDENTIFIER NOT NULL CONSTRAINT FK_Conversation_Session REFERENCES [Session](id),
+    pipeline_id      UNIQUEIDENTIFIER NULL CONSTRAINT FK_Conversation_AgentPipeline REFERENCES AgentPipeline(id),
+    messages_json    NVARCHAR(MAX)    NULL,        
+    response_json    NVARCHAR(MAX)    NULL,        
+    response_output  NVARCHAR(MAX)    NULL,     
     created_at       DATETIME2        NOT NULL DEFAULT SYSUTCDATETIME(),
     updated_at       DATETIME2        NOT NULL DEFAULT SYSUTCDATETIME(),
     CONSTRAINT CK_Conversation_json CHECK (

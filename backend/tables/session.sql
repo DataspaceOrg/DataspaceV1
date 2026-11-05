@@ -1,12 +1,9 @@
 CREATE TABLE [Session] (
-    id            UNIQUEIDENTIFIER NOT NULL
-                  CONSTRAINT PK_Session PRIMARY KEY DEFAULT NEWID(),
-    user_id       UNIQUEIDENTIFIER NOT NULL
-                  CONSTRAINT FK_Session_Users REFERENCES Users(id),
-    dataset_id    UNIQUEIDENTIFIER NOT NULL
-                  CONSTRAINT FK_Session_Dataset REFERENCES Dataset(id),
+    id            UNIQUEIDENTIFIER NOT NULL CONSTRAINT PK_Session PRIMARY KEY DEFAULT NEWID(),
+    user_id       UNIQUEIDENTIFIER NOT NULL CONSTRAINT FK_Session_Users REFERENCES Users(id),
+    dataset_id    UNIQUEIDENTIFIER NOT NULL CONSTRAINT FK_Session_Dataset REFERENCES Dataset(id),
     dataset_name  NVARCHAR(255)    NULL,
-    context       NVARCHAR(MAX)    NULL,           -- JSON
+    context       NVARCHAR(MAX)    NULL, 
     status        NVARCHAR(30)     NOT NULL DEFAULT 'active',
     created_at    DATETIME2        NOT NULL DEFAULT SYSUTCDATETIME(),
     updated_at    DATETIME2        NOT NULL DEFAULT SYSUTCDATETIME(),

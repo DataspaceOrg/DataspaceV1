@@ -1,14 +1,9 @@
 CREATE TABLE Dataset (
-    id           UNIQUEIDENTIFIER NOT NULL
-                 CONSTRAINT PK_Dataset PRIMARY KEY DEFAULT NEWID(),
-    user_id      UNIQUEIDENTIFIER NOT NULL
-                 CONSTRAINT FK_Dataset_Users REFERENCES Users(id),
-    upload_type  NVARCHAR(20)     NOT NULL,        -- e.g. 'csv', 'xlsx', 'sql'
-    raw_bytes    VARBINARY(MAX)   NULL,            -- VARBINARY(MAX) instead of CHAR: raw file bytes (CSV/Excel) are binary, and CHAR
-                                                   -- would corrupt them (and CHAR with no length is only 1 character). Nullable because
-                                                   -- the file itself lives in Azure Blob Storage (see "path"); remove if not needed.
-    path         NVARCHAR(1000)   NULL,            -- Blob Storage path
-    name         NVARCHAR(255)    NOT NULL,
+    id           UNIQUEIDENTIFIER NOT NULL CONSTRAINT PK_Dataset PRIMARY KEY DEFAULT NEWID(),
+    user_id      UNIQUEIDENTIFIER NOT NULL CONSTRAINT FK_Dataset_Users REFERENCES Users(id),
+    upload_type  NVARCHAR(20)     NOT NULL, 
+    path         NVARCHAR(1000)   NULL,         
+    name         NVARCHAR(255)    NULL,
     description  NVARCHAR(MAX)    NULL,
     [columns]    NVARCHAR(MAX)    NULL,            -- JSON array of column names
     [tables]     NVARCHAR(MAX)    NULL,            -- JSON array of table names (SQL uploads)

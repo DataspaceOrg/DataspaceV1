@@ -1,17 +1,13 @@
--- AgentPipeline: one run of the multi-stage pipeline. Each stage stores its JSON output.
 CREATE TABLE AgentPipeline (
-    id           UNIQUEIDENTIFIER NOT NULL
-                 CONSTRAINT PK_AgentPipeline PRIMARY KEY DEFAULT NEWID(),
-    user_id      UNIQUEIDENTIFIER NOT NULL
-                 CONSTRAINT FK_AgentPipeline_Users REFERENCES Users(id),
-    session_id   UNIQUEIDENTIFIER NOT NULL
-                 CONSTRAINT FK_AgentPipeline_Session REFERENCES [Session](id),
+    id           UNIQUEIDENTIFIER NOT NULL CONSTRAINT PK_AgentPipeline PRIMARY KEY DEFAULT NEWID(),
+    user_id      UNIQUEIDENTIFIER NOT NULL CONSTRAINT FK_AgentPipeline_Users REFERENCES Users(id),
+    session_id   UNIQUEIDENTIFIER NOT NULL CONSTRAINT FK_AgentPipeline_Session REFERENCES [Session](id),
     name         NVARCHAR(255)    NULL,
-    [Statistics]   NVARCHAR(MAX)    NULL,            -- JSON
-    Insight      NVARCHAR(MAX)    NULL,            -- JSON
-    Analysis     NVARCHAR(MAX)    NULL,            -- JSON
-    Execution    NVARCHAR(MAX)    NULL,            -- JSON
-    Summary      NVARCHAR(MAX)    NULL,            -- JSON
+    [Statistics]   NVARCHAR(MAX)    NULL,         
+    Insight      NVARCHAR(MAX)    NULL,          
+    Analysis     NVARCHAR(MAX)    NULL,          
+    Execution    NVARCHAR(MAX)    NULL,           
+    Summary      NVARCHAR(MAX)    NULL,         
     created_at   DATETIME2        NOT NULL DEFAULT SYSUTCDATETIME(),
     updated_at   DATETIME2        NOT NULL DEFAULT SYSUTCDATETIME(),
     CONSTRAINT CK_AgentPipeline_json CHECK (
