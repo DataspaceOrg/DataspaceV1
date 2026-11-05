@@ -15,7 +15,6 @@ function Dataset() {
     // const [session, setSession] = useState<AgentSession | null>(null);
     // const [queries, setQueries] = useState<AgentQuery[]>([]);
 
-
     // Use effect for fetching information about the dataset.
     useEffect(() => {
         const id = dataset_id;
@@ -97,11 +96,6 @@ function Dataset() {
     if (error) return <div className="dataset-page">Error: {error}</div>;
 
     const handleInsightClick = async () => {
-        /* 
-        handleInsightClick is a function that is used to run the insight agent for the selected table. 
-        It will call the API to run the insight agent and update the state with the result.
-        */
-
         // If there is no table selected then set the insight message to ask for a table to be selected. 
         if (!selectedTable) {
             setInsightMessage('Select a table before running the insight agent.');
@@ -119,10 +113,7 @@ function Dataset() {
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An unknown error occurred');
         }
-
-
     };
-
     // Set the schema of the selected table. dataset?.schema?.[selectedTable] checks if there is an existing schema, if its null then return null. 
     const selectedTableSchema = selectedTable ? dataset?.schema?.[selectedTable] ?? null : null;
 

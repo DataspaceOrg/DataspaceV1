@@ -1,42 +1,42 @@
-import { type ChangeEvent, useState } from 'react'
-import axios from 'axios';
-
+import { type ChangeEvent, useState } from "react";
+import axios from "axios";
 
 type UploadStatus = "idle" | "uploading" | "success" | "error";
 
 function Upload() {
+  // Either going to be a file, or it will be null, no file.
+  const [file, setFile] = useState<File | null>(null);
+  const [status, setStatus] = useState<UploadStatus>("idle");
+  const [pct, setUploadProgress] = useState(0);
 
-    // Either going to be a file, or it will be null, no file. 
-    const [file, setFile] = useState<File | null>(null);
-    const [status, setStatus] = useState<UploadStatus>("idle")
-    const [pct, setUploadProgress] = useState(0);
-    
-
-    function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
-      // Get the first file, when we select file.
-      if (e.target.files) {
-        setFile(e.target.files[0]);
-      }
+  function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
+    // Get the first file, when we select file.
+    if (e.target.files) {
+      setFile(e.target.files[0]);
     }
+  }
 
-    async function handleFileUpload() {
-      // No file detected
-      if (!file) return;
-      // We are actually uploading the file now. 
-      setStatus("uploading");
+  async function handleFileUpload() {
+    // No file detected
+    if (!file) return;
+    // We are actually uploading the file now.
+    setStatus("uploading");
 
-      // Get the user id from the local storage.
-      const userId = localStorage.getItem('dataspace_user_id');
+    // Get the user id from the local storage.
+    const userId = localStorage.getItem("dataspace_user_id");
 
-      // Now convert it to form data as we are going to be sending it to the backend server
-      // Need to add authentification token here.
-      const formData = new FormData();
-      formData.append("file", file); 
-      // axios.post(url, data, config) formData is our request body.
-      try {
-        const response = await axios.post("http://localhost:8000/db/upload_db", formData, {
+    // Now convert it to form data as we are going to be sending it to the backend server
+    // Need to add authentification token here.
+    const formData = new FormData();
+    formData.append("file", file);
+    // axios.post(url, data, config) formData is our request body.
+    try {
+      const response = await axios.post(
+        "http://localhost:8000/db/upload_db",
+        formData,
+        {
           headers: {
-            'x-user-id': userId, 
+            "x-user-id": userId,
           },
           onUploadProgress: (e) => {
             if (e.total) {
@@ -44,20 +44,54 @@ function Upload() {
               setUploadProgress(set_pct); // e.g. 0–100
             }
           },
-        });
+        },
+      );
 
-        console.log(response.data);
-        setStatus("success");
-      
-      } catch(e) {
-        setStatus("error");
-      };
+      console.log(response.data);
+      setStatus("success");
+    } catch (e) {
+      setStatus("error");
     }
+  }
+
+  async function handleFileDatasetUpload() {
+    if (!file || status === "uploading") return;
+
+    setStatus("uploading");
+    setUploadProgress(0);
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await axios.post(
+        "http://localhost:8000/dataset/upload",
+        formData,
+        {
+          onUploadProgress: (event) => {
+            if (event.total) {
+              setUploadProgress(Math.round((event.loaded / event.total) * 100));
+            }
+          },
+        },
+      );
+
+      console.log("Uploaded dataset:", response.data);
+      setStatus("success");
+    } catch (error) {
+      console.error("Dataset upload failed:", error);
+      setStatus("error");
+    }
+  }
 
   return (
     <div>
       <h1 className="text-2xl font-bold mb-4">Upload File</h1>
-      <input className="mb-4 w-full text-lg" type="file" onChange={handleFileChange} />
+      <input
+        className="mb-4 w-full text-lg"
+        type="file"
+        onChange={handleFileChange}
+      />
       {file && (
         <div className="mb-4 text-sm">
           <p className="text-gray-500 text-lg">File Name: {file.name}</p>
@@ -66,13 +100,38 @@ function Upload() {
         </div>
       )}
       {/* Dont want to render button if we are already uploading. */}
-      {file && status !== "uploading" && <button className="bg-blue-500 text-white px-4 py-2 rounded-md" onClick={handleFileUpload}>Upload</button>}
-      {status === "success" && <p className="text-green-500">File uploaded successfully</p>}
+      {file && status !== "uploading" && (
+        <button
+          className="bg-blue-500 text-white px-4 py-2 rounded-md"
+          onClick={handleFileUpload}
+        >
+          Upload
+        </button>
+      )}
+      {status === "success" && (
+        <p className="text-green-500">File uploaded successfully</p>
+      )}
       {status === "error" && <p className="text-red-500">File upload failed</p>}
-      {status === "uploading" && <p className="text-yellow-500">Uploading... {pct}%</p>}
+      {status === "uploading" && (
+        <p className="text-yellow-500">Uploading... {pct}%</p>
+      )}
+      <div>
+        <h1 className="text-2xl font-bold mb-4">Upload File Dataset </h1>
+        <input
+          className="mb-4 w-full text-lg"
+          type="file"
+          onChange={handleFileChange}
+        />
+      </div>
+      <button
+        onClick={handleFileDatasetUpload}
+        disabled={!file || status === "uploading"}
+        className="bg-blue-500 text-white px-4 py-2 rounded-md"
+      >
+        Upload dataset
+      </button>
     </div>
-    
-  )
+  );
 }
 
 export default Upload;
