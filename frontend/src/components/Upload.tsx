@@ -89,7 +89,7 @@ function Upload() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-4">Upload File</h1>
+      <h1 className="text-2xl font-bold mb-4">Upload File (Metadata) To DB</h1>
       <input
         className="upload-file-input"
         aria-label="Choose a file for local upload"
