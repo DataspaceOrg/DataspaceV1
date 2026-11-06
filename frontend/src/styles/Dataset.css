@@ -504,3 +504,11 @@
     min-width: 0;
   }
 }
+
+
+/* AG grid styling */
+.dataset-ag-grid {
+  height: 450px;
+  width: 100%;
+  margin-bottom: 20px;
+}

@@ -11,6 +11,7 @@ from .db_services import (
 )
 from .db_constants import DATA_ROOT, Dataset
 from .db_metadata import save_metadata, list_datasets, get_dataset_by_id
+from .db_services import get_sample_rows
 
 
 router = APIRouter(prefix="/db", tags=["db"])
@@ -100,3 +101,32 @@ def upload_db(file: UploadFile = File(...), x_user_id: str = Header(...)) -> dic
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Error saving metadata: {e}")
+
+
+@router.get("/datasets/{dataset_id}/rows")
+def get_dataset_rows(dataset_id: str, table_name: str, x_user_id: str = Header(...)):
+    """
+    get the preview data (100 rows) of the dataset in rows
+    """
+    # retrieve metadata, including Parquet path (only for .csv files)
+    try:
+        dataset = get_dataset_by_id(dataset_id, x_user_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+
+    # ensure that filetype is .csv
+    if dataset.upload_type != "csv":
+        raise HTTPException(
+            status_code=400,
+            detail="Rows preview (for editor) are only supported for .csv files"
+        )
+
+    if table_name not in dataset.tables:
+        raise HTTPException(status_code=404, detail="Table not found")
+
+    # preview only the first 100 rows
+    return get_sample_rows(
+        dataset=dataset,
+        num_rows=100,
+        table_name=table_name,
+    )

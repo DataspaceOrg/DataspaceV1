@@ -3,6 +3,16 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import '../styles/Dataset.css';
 
+import { AgGridReact } from "ag-grid-react";
+import {
+  AllCommunityModule,
+  ModuleRegistry,
+  themeQuartz,
+} from "ag-grid-community";
+
+// module registration for ag grid
+ModuleRegistry.registerModules([AllCommunityModule]);
+
 function Dataset() {
     const { dataset_id } = useParams<{ dataset_id: string }>();
     const [dataset, setDataset] = useState<DatasetModel | null>(null);
@@ -11,6 +21,9 @@ function Dataset() {
     const [insightMessage, setInsightMessage] = useState<string | null>(null);
     const [selectedTable, setSelectedTable] = useState<string | null>(null);
     const [datasetContext, setDatasetContext] = useState('');
+
+    type DatasetRow = Record<string, string | number | boolean | null>;
+    const [rowData, setRowData] = useState<DatasetRow[]>([]);
 
     // const [session, setSession] = useState<AgentSession | null>(null);
     // const [queries, setQueries] = useState<AgentQuery[]>([]);
@@ -92,6 +105,52 @@ function Dataset() {
         }
     }, [dataset_id, selectedTable]);
 
+
+    // fetch sample 100 rows for ag-grid, only run if file is .csv
+    useEffect(() => {
+        // if id/table/file type invalid
+        if (!dataset_id || !selectedTable || dataset?.upload_type !== "csv") {
+            return;
+        }
+
+        const controller = new AbortController();
+        setRowData([]);
+
+        async function loadRows() {
+            const params = new URLSearchParams({
+            table_name: selectedTable!,
+            });
+
+            try {
+            const response = await fetch(
+                `http://localhost:8000/db/datasets/${dataset_id}/rows?${params}`,
+                {
+                headers: {
+                    "x-user-id":
+                    localStorage.getItem("dataspace_user_id") ?? "",
+                },
+                signal: controller.signal,
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error("Failed to load rows");
+            }
+
+            const rows: DatasetRow[] = await response.json();
+            setRowData(rows);
+            } catch (error) {
+            if (!controller.signal.aborted) {
+                console.error(error);
+            }
+            }
+        }
+
+        loadRows();
+
+        return () => controller.abort();
+    }, [dataset_id, selectedTable]);
+
     if (loading) return <div className="dataset-page">Loading…</div>;
     if (error) return <div className="dataset-page">Error: {error}</div>;
 
@@ -116,6 +175,21 @@ function Dataset() {
     };
     // Set the schema of the selected table. dataset?.schema?.[selectedTable] checks if there is an existing schema, if its null then return null. 
     const selectedTableSchema = selectedTable ? dataset?.schema?.[selectedTable] ?? null : null;
+
+    // get column definitions of current .csv file for ag-grid
+    const columnDefs = Object.keys(selectedTableSchema ?? {}).map(
+        (columnName) => ({
+            field: columnName,
+            headerName: columnName,
+        })
+    );
+
+    /* 
+    flow for getting data for ag-grid
+    metadata schema -> columnDefs
+    stored Parquet -> backend rows endpoint -> rowData
+    */
+    
 
     return (    
         <div className="dataset-page">
@@ -189,6 +263,16 @@ function Dataset() {
                         <h2 className="dataset-panel-title">Choose a table to explore</h2>
                     </div>
                 </div>
+
+                {dataset?.upload_type === "csv" && (
+                    <div className="dataset-ag-grid">
+                        <AgGridReact
+                            theme={themeQuartz}
+                            rowData={rowData}
+                            columnDefs={columnDefs}
+                        />
+                    </div>
+                )}
 
                 <div className="dataset-table-tabs">
                     {/* Loop through all the tables in the total dataset and then map them to tab elements.  */}
