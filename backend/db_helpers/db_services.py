@@ -7,6 +7,7 @@ import logging
 from .db_constants import Dataset
 from db_helpers.db_constants import DATA_ROOT, METADATA_DB, METADATA_TABLE
 from fastapi import UploadFile
+from typing import Any
 
 '''
 db_services.py is a module that contains the functions to interact with the database services.
@@ -203,6 +204,60 @@ def get_sample_rows(dataset: Dataset, num_rows: int, table_name: str) -> list[di
         conn.close()
 
     return dataframe.to_dict(orient="records")
+
+
+def get_csv_rows(dataset: Dataset, num_rows: int, offset: int) -> dict[str, Any]:
+    """
+    get_csv_rows retrieves a page of rows from a csv dataset stored as Parquet
+
+    args:
+        dataset:    Dataset     - metadata of the dataset to be read
+        num_rows:   int         - max number of rows per page
+        offset:     int         - number of rows to skip
+    returns:
+        dict[str, Any]  - rows, total row count, pagination values
+    """
+    if dataset.upload_type != "csv":
+        raise ValueError("Only .csv files are supported")
+
+    if num_rows < 1:
+        raise ValueError("number of rows must be positive")
+    if offset < 0:
+        raise ValueError("offset must not be negative")
+
+    # init DuckDB conn
+    conn = duckdb.connect()
+    dataset_path = dataset.dataset_path
+
+    try:
+        # get total number of rows for pagination
+        total_rows = conn.execute(
+            "SELECT COUNT(*) FROM read_parquet(?)",
+            [dataset_path]
+        ).fetchone()[0]
+
+        # read the requested page from the Parquet file
+        cursor = conn.execute(
+            "SELECT * FROM read_parquet(?) LIMIT ? OFFSET ?",
+            [dataset_path, num_rows, offset]
+        )
+
+        # match each row value to its column name
+        column_names = [column[0] for column in cursor.description]
+        rows = [
+            dict(zip(column_names, row))
+            for row in cursor.fetchall()
+        ]
+
+    finally:
+        conn.close()
+
+    return {
+        "rows": rows,
+        "total_rows": total_rows,
+        "num_rows": num_rows,
+        "offset": offset,
+    }
 
 # Potential next functions to add
 # - Save JSON Files

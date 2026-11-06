@@ -1,5 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException
-from fastapi import UploadFile, File, Header
+from fastapi import APIRouter, HTTPException, UploadFile, File, Header, Query
 import uuid
 from .db_services import (
     detect_upload_type,
@@ -11,7 +10,7 @@ from .db_services import (
 )
 from .db_constants import DATA_ROOT, Dataset
 from .db_metadata import save_metadata, list_datasets, get_dataset_by_id
-from .db_services import get_sample_rows
+from .db_services import get_csv_rows
 
 
 router = APIRouter(prefix="/db", tags=["db"])
@@ -104,29 +103,31 @@ def upload_db(file: UploadFile = File(...), x_user_id: str = Header(...)) -> dic
 
 
 @router.get("/datasets/{dataset_id}/rows")
-def get_dataset_rows(dataset_id: str, table_name: str, x_user_id: str = Header(...)):
-    """
-    get the preview data (100 rows) of the dataset in rows
-    """
-    # retrieve metadata, including Parquet path (only for .csv files)
+def get_dataset_rows(
+    dataset_id: str,
+    table_name: str,
+    x_user_id: str = Header(...),
+    num_rows: int = Query(default=100, ge=1, le=1000),
+    offset: int = Query(default=0, ge=0),
+) -> dict:
+    '''
+    get a page of rows from a CSV dataset for the given user
+    '''
+    # retrieve the dataset metadata for the current user
     try:
         dataset = get_dataset_by_id(dataset_id, x_user_id)
     except ValueError as exc:
-        raise HTTPException(status_code=404, detail=str(exc))
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
 
-    # ensure that filetype is .csv
+    # ensure that the dataset was uploaded as a CSV file
     if dataset.upload_type != "csv":
         raise HTTPException(
             status_code=400,
-            detail="Rows preview (for editor) are only supported for .csv files"
+            detail="Only CSV datasets are supported.",
         )
 
+    # ensure that the requested table belongs to the dataset
     if table_name not in dataset.tables:
-        raise HTTPException(status_code=404, detail="Table not found")
+        raise HTTPException(status_code=404, detail="Table not found.")
 
-    # preview only the first 100 rows
-    return get_sample_rows(
-        dataset=dataset,
-        num_rows=100,
-        table_name=table_name,
-    )
+    return get_csv_rows(dataset, num_rows, offset)

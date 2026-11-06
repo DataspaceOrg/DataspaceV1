@@ -512,3 +512,17 @@
   width: 100%;
   margin-bottom: 20px;
 }
+/* Controls for CSV pages fetched from the backend. */
+.dataset-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 16px 0;
+}
+
+.dataset-pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

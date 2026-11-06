@@ -25,6 +25,20 @@ function Dataset() {
     type DatasetRow = Record<string, string | number | boolean | null>;
     const [rowData, setRowData] = useState<DatasetRow[]>([]);
 
+    type RowsResponse = {
+        rows: DatasetRow[];
+        total_rows: number;
+        num_rows: number;
+        offset: number;
+    };
+
+    const [page, setPage] = useState(0);
+    const [totalRows, setTotalRows] = useState(0);
+    const [rowsLoading, setRowsLoading] = useState(false);
+    const [rowsError, setRowsError] = useState<string | null>(null);
+
+    const pageSize = 100;
+
     // const [session, setSession] = useState<AgentSession | null>(null);
     // const [queries, setQueries] = useState<AgentQuery[]>([]);
 
@@ -46,6 +60,8 @@ function Dataset() {
                     setDataset(dataset);
                     // Set the first table as the selected table by default.
                     setSelectedTable(dataset.tables[0] ?? null);
+                    // set first page as offset 0 by default
+                    setPage(0);
                   }
             } catch (err) {
                 if (!cancelled) {
@@ -106,50 +122,55 @@ function Dataset() {
     }, [dataset_id, selectedTable]);
 
 
-    // fetch sample 100 rows for ag-grid, only run if file is .csv
+    // Fetch one page of rows from the CSV dataset.
     useEffect(() => {
-        // if id/table/file type invalid
-        if (!dataset_id || !selectedTable || dataset?.upload_type !== "csv") {
-            return;
-        }
+        if (!dataset_id || !selectedTable ||
+            dataset?.dataset_id !== dataset_id || dataset?.upload_type !== "csv") return;
 
         const controller = new AbortController();
-        setRowData([]);
+        const tableName = selectedTable;
 
         async function loadRows() {
+            setRowsLoading(true);
+            setRowsError(null);
+            setRowData([]);
+
             const params = new URLSearchParams({
-            table_name: selectedTable!,
+                table_name: tableName,
+                num_rows: String(pageSize),
+                offset: String(page * pageSize),
             });
 
             try {
-            const response = await fetch(
-                `http://localhost:8000/db/datasets/${dataset_id}/rows?${params}`,
-                {
-                headers: {
-                    "x-user-id":
-                    localStorage.getItem("dataspace_user_id") ?? "",
-                },
-                signal: controller.signal,
-                }
-            );
+                const response = await fetch(
+                    `http://localhost:8000/db/datasets/${dataset_id}/rows?${params}`,
+                    {
+                        headers: {
+                            "x-user-id": localStorage.getItem("dataspace_user_id") ?? "",
+                        },
+                        signal: controller.signal,
+                    }
+                );
 
-            if (!response.ok) {
-                throw new Error("Failed to load rows");
-            }
+                if (!response.ok) throw new Error("Failed to load rows.");
 
-            const rows: DatasetRow[] = await response.json();
-            setRowData(rows);
+                const data: RowsResponse = await response.json();
+                if (controller.signal.aborted) return;
+
+                setRowData(data.rows);
+                setTotalRows(data.total_rows);
             } catch (error) {
-            if (!controller.signal.aborted) {
-                console.error(error);
-            }
+                if (!controller.signal.aborted) {
+                    setRowsError(error instanceof Error ? error.message : "Failed to load rows.");
+                }
+            } finally {
+                if (!controller.signal.aborted) setRowsLoading(false);
             }
         }
 
         loadRows();
-
         return () => controller.abort();
-    }, [dataset_id, selectedTable]);
+    }, [dataset_id, selectedTable, dataset?.dataset_id, dataset?.upload_type, page, pageSize]);
 
     if (loading) return <div className="dataset-page">Loading…</div>;
     if (error) return <div className="dataset-page">Error: {error}</div>;
@@ -265,13 +286,38 @@ function Dataset() {
                 </div>
 
                 {dataset?.upload_type === "csv" && (
-                    <div className="dataset-ag-grid">
-                        <AgGridReact
-                            theme={themeQuartz}
-                            rowData={rowData}
-                            columnDefs={columnDefs}
-                        />
-                    </div>
+                    <>
+                        <div className="dataset-ag-grid" aria-busy={rowsLoading}>
+                            <AgGridReact
+                                theme={themeQuartz}
+                                rowData={rowData}
+                                columnDefs={columnDefs}
+                            />
+                        </div>
+                        {rowsError && <p role="alert">{rowsError}</p>}
+                        <div className="dataset-pagination">
+                            <button
+                                type="button"
+                                className="dataset-button dataset-button-secondary"
+                                disabled={page === 0 || rowsLoading}
+                                onClick={() => setPage((current) => current - 1)}
+                            >
+                                Previous
+                            </button>
+                            <span aria-live="polite">
+                                {rowsLoading ? "Loading rows…" :
+                                    `Page ${page + 1} of ${Math.max(1, Math.ceil(totalRows / pageSize))} · ${totalRows} rows`}
+                            </span>
+                            <button
+                                type="button"
+                                className="dataset-button dataset-button-secondary"
+                                disabled={rowsLoading || rowsError !== null || (page + 1) * pageSize >= totalRows}
+                                onClick={() => setPage((current) => current + 1)}
+                            >
+                                Next
+                            </button>
+                        </div>
+                    </>
                 )}
 
                 <div className="dataset-table-tabs">
@@ -287,7 +333,10 @@ function Dataset() {
                                     : 'dataset-table-tab'
                             }
                             // On the click set the selected table to the table name from the dataset.tables array.
-                            onClick={() => setSelectedTable(tableName)}
+                            onClick={() => {
+                                setSelectedTable(tableName);
+                                setPage(0);
+                            }}
                         >
                             {/* Display the table name. */}
                             <span className="dataset-table-tab-name dataset-code-text">{tableName}</span>
