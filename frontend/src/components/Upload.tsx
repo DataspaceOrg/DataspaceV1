@@ -2,8 +2,6 @@ import { type ChangeEvent, useState } from "react";
 import axios from "axios";
 import "../styles/Upload.css";
 
-import "../styles/Upload.css";
-
 type UploadStatus = "idle" | "uploading" | "success" | "error";
 
 function Upload() {
