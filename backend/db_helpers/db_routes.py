@@ -10,7 +10,7 @@ from .db_services import (
 )
 from .db_constants import DATA_ROOT, Dataset
 from .db_metadata import save_metadata, list_datasets, get_dataset_by_id
-from .db_services import get_csv_rows
+from .db_services import get_csv_rows, get_sample_rows
 
 
 router = APIRouter(prefix="/db", tags=["db"])
@@ -111,7 +111,7 @@ def get_dataset_rows(
     offset: int = Query(default=0, ge=0),
 ) -> dict:
     '''
-    get a page of rows from a CSV dataset for the given user
+    Get a CSV page or a sample of up to 100 rows from a SQLite table.
     '''
     # retrieve the dataset metadata for the current user
     try:
@@ -119,15 +119,30 @@ def get_dataset_rows(
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
-    # ensure that the dataset was uploaded as a CSV file
-    if dataset.upload_type != "csv":
+    if dataset.upload_type not in ("csv", "db", "sqlite"):
         raise HTTPException(
             status_code=400,
-            detail="Only CSV datasets are supported.",
+            detail="Only CSV and SQLite datasets are supported.",
         )
 
     # ensure that the requested table belongs to the dataset
     if table_name not in dataset.tables:
         raise HTTPException(status_code=404, detail="Table not found.")
 
-    return get_csv_rows(dataset, num_rows, offset)
+    if dataset.upload_type == "csv":
+        return get_csv_rows(dataset, num_rows, offset)
+
+    if offset:
+        raise HTTPException(status_code=400, detail="SQLite previews do not support offsets.")
+
+    sample_size = min(num_rows, 100)
+    rows = get_sample_rows(dataset, sample_size, table_name)
+    return {
+        "rows": [
+            {column: value.hex() if isinstance(value, bytes) else value for column, value in row.items()}
+            for row in rows
+        ],
+        "total_rows": len(rows),
+        "num_rows": sample_size,
+        "offset": 0,
+    }

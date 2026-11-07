@@ -137,10 +137,13 @@ function Dataset() {
     }, [dataset_id, selectedTable]);
 
 
-    // Fetch one page of rows from the CSV dataset.
+    const isCsv = dataset?.upload_type === 'csv';
+    const supportsPreview = isCsv || dataset?.upload_type === 'db' || dataset?.upload_type === 'sqlite';
+
+    // Fetch a CSV page or a sample from the selected SQLite table.
     useEffect(() => {
         if (!dataset_id || !selectedTable ||
-            dataset?.dataset_id !== dataset_id || dataset?.upload_type !== "csv") return;
+            dataset?.dataset_id !== dataset_id || !supportsPreview) return;
 
         const controller = new AbortController();
         const tableName = selectedTable;
@@ -185,7 +188,7 @@ function Dataset() {
 
         loadRows();
         return () => controller.abort();
-    }, [dataset_id, selectedTable, dataset?.dataset_id, dataset?.upload_type, page, pageSize]);
+    }, [dataset_id, selectedTable, dataset?.dataset_id, supportsPreview, page, pageSize]);
 
     const handleInsightClick = async () => {
         // If there is no table selected then set the insight message to ask for a table to be selected. 
@@ -224,8 +227,6 @@ function Dataset() {
     stored Parquet -> backend rows endpoint -> rowData
     */
     
-
-    const isCsv = dataset?.upload_type === 'csv';
 
     return (
         <div className="dataset-page">
@@ -279,39 +280,46 @@ function Dataset() {
                                         <option key={tableName} value={tableName}>{tableName}</option>
                                     ))}
                                 </select>
-                                {isCsv && (
+                                {supportsPreview && (
                                     <>
                                         <div className="dataset-ag-grid" aria-busy={rowsLoading}>
                                             <AgGridReact
                                                 theme={datasetGridTheme}
+                                                suppressFieldDotNotation
                                                 loading={rowsLoading}
                                                 rowData={rowData}
                                                 columnDefs={columnDefs}
                                             />
                                         </div>
                                         {rowsError && <p role="alert">{rowsError}</p>}
-                                        <div className="dataset-pagination">
-                                            <button
-                                                type="button"
-                                                className="dataset-button"
-                                                disabled={page === 0 || rowsLoading}
-                                                onClick={() => setPage((current) => current - 1)}
-                                            >
-                                                Previous
-                                            </button>
-                                            <span aria-live="polite">
-                                                {rowsLoading ? "Loading rows…" :
-                                                    rowsError ? "Rows unavailable" : `Page ${page + 1} of ${Math.max(1, Math.ceil(totalRows / pageSize))} · ${totalRows} rows`}
-                                            </span>
-                                            <button
-                                                type="button"
-                                                className="dataset-button"
-                                                disabled={rowsLoading || rowsError !== null || (page + 1) * pageSize >= totalRows}
-                                                onClick={() => setPage((current) => current + 1)}
-                                            >
-                                                Next
-                                            </button>
-                                        </div>
+                                        {isCsv ? (
+                                            <div className="dataset-pagination">
+                                                <button
+                                                    type="button"
+                                                    className="dataset-button"
+                                                    disabled={page === 0 || rowsLoading}
+                                                    onClick={() => setPage((current) => current - 1)}
+                                                >
+                                                    Previous
+                                                </button>
+                                                <span aria-live="polite">
+                                                    {rowsLoading ? "Loading rows…" :
+                                                        rowsError ? "Rows unavailable" : `Page ${page + 1} of ${Math.max(1, Math.ceil(totalRows / pageSize))} · ${totalRows} rows`}
+                                                </span>
+                                                <button
+                                                    type="button"
+                                                    className="dataset-button"
+                                                    disabled={rowsLoading || rowsError !== null || (page + 1) * pageSize >= totalRows}
+                                                    onClick={() => setPage((current) => current + 1)}
+                                                >
+                                                    Next
+                                                </button>
+                                            </div>
+                                        ) : !rowsLoading && !rowsError && (
+                                            <p className="dataset-pagination" aria-live="polite">
+                                                {totalRows} sample rows
+                                            </p>
+                                        )}
                                     </>
                                 )}
                                 <details key={dataset.dataset_id} className="dataset-schema" open={!isCsv}>

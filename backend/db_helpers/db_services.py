@@ -1,4 +1,5 @@
 import os
+from contextlib import closing
 import sqlite3
 import duckdb
 import uuid
@@ -164,46 +165,36 @@ def get_sqlite_schema(sqlite_path: Path) -> dict:
     # For each table get the information about the table, getting the column names and their types.
     for table in table_names:
         # Fetching all of the columns in the table and their types
-        cursor = conn.execute(f"PRAGMA table_info({table})")
+        cursor = conn.execute("SELECT * FROM pragma_table_info(?)", (table,))
         schema[table] = {column[1]: column[2]
                          or "TEXT" for column in cursor.fetchall()}
 
     return schema
 
 
-def get_sample_rows(dataset: Dataset, num_rows: int, table_name: str) -> list[dict[str, any]]:
-    '''
-    get_sample_rows is a db_helper function that gets the sample rows from a dataset and returns them as a list of dictionaries.
-    If table name is none then we will return none.
+def get_sample_rows(dataset: Dataset, num_rows: int, table_name: str) -> list[dict[str, Any]]:
+    """Return up to num_rows from a table in a stored dataset."""
+    if table_name not in dataset.tables:
+        raise ValueError("Table not found.")
+    if num_rows < 1:
+        raise ValueError("Number of rows must be positive.")
 
-    For CSV -> Parquet: we will read the parquet file and return the sample rows.
-    For SQLite we will read the SQLite database and return the sample rows. 
-    '''
-    if table_name is None:
-        raise ValueError("No table name provided.")
+    if dataset.upload_type in ("db", "sqlite"):
+        database_uri = Path(dataset.dataset_path).resolve().as_uri()
+        quoted_table = '"' + table_name.replace('"', '""') + '"'
+        with closing(sqlite3.connect(f"{database_uri}?mode=ro", uri=True)) as conn:
+            conn.row_factory = sqlite3.Row
+            rows = conn.execute(f"SELECT * FROM main.{quoted_table} LIMIT ?", (num_rows,))
+            return [dict(row) for row in rows]
 
-    # Initialize duckDB connection.
-    conn = duckdb.connect()
-    dataset_path = dataset.dataset_path
-
-    try:
-        if dataset.upload_type == "csv":
-            # If csv then we load in the parquet file and return the sample rows. There is only one table in the dataset.
+    if dataset.upload_type == "csv":
+        with duckdb.connect() as conn:
             dataframe = conn.execute(
-                "SELECT * FROM read_parquet(?) LIMIT ?", [dataset_path, num_rows]).fetchdf()
+                "SELECT * FROM read_parquet(?) LIMIT ?", [dataset.dataset_path, num_rows]
+            ).fetchdf()
+            return dataframe.to_dict(orient="records")
 
-        # If its a db type then it is an sqlite database.
-        elif dataset.upload_type == "db":
-            # if sqlite then we moust attach the sqlite file into DuckDB and expose it with the name sqlite_db.
-            conn.execute(
-                f"ATTACH DATABASE '{dataset_path}' AS sqlite_db (TYPE sqlite)")
-            dataframe = conn.execute(
-                f"SELECT * FROM sqlite_db.{table_name} LIMIT ?", [num_rows]).fetchdf()
-
-    finally:
-        conn.close()
-
-    return dataframe.to_dict(orient="records")
+    raise ValueError("Dataset format does not support sample rows.")
 
 
 def get_csv_rows(dataset: Dataset, num_rows: int, offset: int) -> dict[str, Any]:
