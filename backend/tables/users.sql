@@ -1,0 +1,9 @@
+CREATE TABLE Users (
+    id             UNIQUEIDENTIFIER NOT NULL CONSTRAINT PK_Users PRIMARY KEY DEFAULT NEWID(),
+    username       NVARCHAR(100)    NOT NULL,
+    email          NVARCHAR(255)    NOT NULL CONSTRAINT UQ_Users_email UNIQUE,
+    password_hash  NVARCHAR(255)    NOT NULL,
+    created_at     DATETIME2        NOT NULL DEFAULT SYSUTCDATETIME(),
+    updated_at     DATETIME2        NOT NULL DEFAULT SYSUTCDATETIME()
+);
+GO

@@ -49,48 +49,51 @@ function AuthPage({ mode }: { mode: AuthMode }) {
     }
 
     return (
-        <div className="auth-page">
-            <div className="auth-card">
-                <div className="auth-header">
-                    <h1>{SigningUp ? "Create your Account" : "Login to Dataspace"}</h1>
-                    <p>{SigningUp ? "Sign up to start learning more about the power of your data" : "Welcome back. Log in to continue working with your datasets."}</p>
-                </div>
+        <div className="public-page">
+            <header className="public-nav">
+                <Link className="brand" to="/">dataspace</Link>
+                <Link to={SigningUp ? "/login" : "/signup"}>
+                    {SigningUp ? "Log in" : "Create account"}
+                </Link>
+            </header>
+            <main className="auth-wrap">
+                <h1>{SigningUp ? "Create account" : "Log in"}</h1>
+                <p className="muted auth-description">
+                    {SigningUp ? "Sign up to start learning more about the power of your data" : "Welcome back. Log in to continue working with your datasets."}
+                </p>
                 <form className="auth-form" onSubmit={handleSubmit}>
                     {/* If signing up is true. Then a username is needed to create an account. Email and password are needed regardless of logging in or signing up. */}
                     { SigningUp && (
-                        <label className="auth-field">
-                            <p>Username</p>
-                            <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Enter your username" required />
+                        <label className="field" htmlFor="username">
+                            <span>Username</span>
+                            <input id="username" type="text" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Enter your username" required />
                         </label>
                     )}
 
-                    <label className="auth-field">
-                        <p>Email</p>
-                        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter your email" required />
+                    <label className="field" htmlFor="email">
+                        <span>Email</span>
+                        <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter your email" required />
                     </label>
 
-                    <label className="auth-field">
-                        <p>Password</p>
-                        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Enter your password" required />
+                    <label className="field" htmlFor="password">
+                        <span>Password</span>
+                        <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Enter your password" required />
                     </label>
 
-                    {error && <p className="error-message">{error}</p>}
+                    {error && <p className="feedback error" role="alert">{error}</p>}
 
                     {/* Display different test if we are signing up or logging in.  */}
-                    <button className="auth-submit-button" type="submit" disabled={submitting}>
+                    <button className="button primary auth-submit-button" type="submit" disabled={submitting}>
                         {submitting ? SigningUp ? "Signing Up..." : "Logging In..." : SigningUp ? "Create Account" : "Login"}
                     </button>
                 </form>
-                <div className="auth-switch">
-                    {
-                        SigningUp ? (
-                            <p>Already have an account? <Link to="/login" className="auth-switch-link">Login</Link></p>
-                        ) : (
-                            <p>Don't have an account? <Link to="/signup" className="auth-switch-link">Sign up</Link></p>
-                        )
-                    }
-                </div>
-            </div>    
+                <p className="auth-switch muted small">
+                    {SigningUp ? "Already have an account? " : "Don't have an account? "}
+                    <Link to={SigningUp ? "/login" : "/signup"} className="auth-switch-link">
+                        {SigningUp ? "Log in" : "Sign up"}
+                    </Link>
+                </p>
+            </main>
         </div>
     )
 

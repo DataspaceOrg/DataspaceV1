@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net">
   <diagram name="Page-1" id="qu5sg8kXmd5e4wUhd2dL">
-    <mxGraphModel dx="2600" dy="1712" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="3936" dy="2631" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -631,6 +631,12 @@
         </mxCell>
         <mxCell id="oo83uOwNWfEE0Z5shK8--71" parent="1" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;Sprint 2 Goals:&lt;/h1&gt;&lt;div&gt;Allow for a conversation agent to be embedded. The dataset information can be fetched by the conversation agent. A new dataset will be fetched from storage, it can be written to, editied, have additional information then be sent back to storage.&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Download -&amp;gt; Edit Locally -&amp;gt; Upload Back.&amp;nbsp;&lt;/div&gt;" vertex="1">
           <mxGeometry height="205" width="320" x="-1530" y="675" as="geometry" />
+        </mxCell>
+        <mxCell id="nsMeJd_c_fcsu2wH51GI-1" parent="1" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;Endpoint Creation&lt;/h1&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;" vertex="1">
+          <mxGeometry height="120" width="290" x="-1650" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="nsMeJd_c_fcsu2wH51GI-2" parent="1" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;Orchestrating Agent&lt;/h1&gt;&lt;p&gt;A limit behind the multi-pipeline steps is how it can act as a limiting factor early on in interpretation. The outputs and analysis from the pipeline should be used an initial understanding and exploration that the orchestration model can use to continue investigating, verifying and extending the output.&lt;/p&gt;&lt;p&gt;Would Astra 6.1 possibly used as. a second analysis agent to the side of the existing pipeline to run aggregations? (Investigation agent which does an answer for specific questions, check disputed findings from the pipeline).&lt;/p&gt;&lt;p&gt;https://developers.openai.com/api/docs/guides/agents/orchestration.&lt;/p&gt;&lt;p&gt;Initially should we try to use OpenAI Agents to try and build out the pipeline and then use Astra as the model for data analytics?&amp;nbsp;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;" vertex="1">
+          <mxGeometry height="280" width="400" x="-1330" y="170" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
