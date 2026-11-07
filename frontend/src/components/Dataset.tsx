@@ -13,11 +13,22 @@ import {
 // module registration for ag grid
 ModuleRegistry.registerModules([AllCommunityModule]);
 
+const datasetGridTheme = themeQuartz.withParams({
+    backgroundColor: '#ffffff',
+    foregroundColor: '#102647',
+    headerBackgroundColor: '#f4f8ff',
+    headerTextColor: '#102647',
+    borderColor: '#dde6f2',
+    accentColor: '#205dcc',
+    fontFamily: 'inherit',
+});
+
 function Dataset() {
     const { dataset_id } = useParams<{ dataset_id: string }>();
     const [dataset, setDataset] = useState<DatasetModel | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [analysisError, setAnalysisError] = useState<string | null>(null);
     const [insightMessage, setInsightMessage] = useState<string | null>(null);
     const [selectedTable, setSelectedTable] = useState<string | null>(null);
     const [datasetContext, setDatasetContext] = useState('');
@@ -114,7 +125,11 @@ function Dataset() {
             setInsightMessage(latestInsight?.response_output ?? null);
         }
 
-        restoreSession(dataset_id, selectedTable);
+        restoreSession(dataset_id, selectedTable).catch((err) => {
+            if (!cancelled) {
+                setAnalysisError(err instanceof Error ? err.message : 'Failed to restore insights.');
+            }
+        });
         // Cleanup function for when the component is unmounted (i.e if the user navigates away from the dataset page).
         return () => {
             cancelled = true;
@@ -172,9 +187,6 @@ function Dataset() {
         return () => controller.abort();
     }, [dataset_id, selectedTable, dataset?.dataset_id, dataset?.upload_type, page, pageSize]);
 
-    if (loading) return <div className="dataset-page">Loading…</div>;
-    if (error) return <div className="dataset-page">Error: {error}</div>;
-
     const handleInsightClick = async () => {
         // If there is no table selected then set the insight message to ask for a table to be selected. 
         if (!selectedTable) {
@@ -187,11 +199,12 @@ function Dataset() {
             return;
         }
 
+        setAnalysisError(null);
         try {
             const response = await queryInsightAgent(dataset_id, { table_name: selectedTable, dataset_context: datasetContext, });
             setInsightMessage(response.query.response_output);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'An unknown error occurred');
+            setAnalysisError(err instanceof Error ? err.message : 'An unknown error occurred');
         }
     };
     // Set the schema of the selected table. dataset?.schema?.[selectedTable] checks if there is an existing schema, if its null then return null. 
@@ -212,206 +225,139 @@ function Dataset() {
     */
     
 
-    return (    
+    const isCsv = dataset?.upload_type === 'csv';
+
+    return (
         <div className="dataset-page">
-            <header className="dataset-hero">
-                <div className="dataset-breadcrumbs">
-                    <Link to="/dashboard">Datasets</Link>
-                    <span>/</span>
-                    <span className="dataset-code-text">{dataset?.dataset_id?.slice(0, 8)}…</span>
-                </div>
-
-                <div className="dataset-hero-top">
-                    <div className="dataset-title-group">
-                        <p className="dataset-name">Dataset Details</p>
+            <header className="dataset-header">
+                <Link className="dataset-back-link" to="/dashboard">← Datasets</Link>
+                <div className="dataset-header-top">
+                    <div>
+                        <h1>Dataset details</h1>
+                        <p className="dataset-id">{dataset_id}</p>
                     </div>
-
-                    <div className="dataset-actions">
-                        {/* Refresh the dataset page. */}
-                        <button className="dataset-button dataset-button-secondary" onClick={() => window.location.reload()}>
-                            Refresh Dataset
-                        </button>
-                    </div>
+                    <button
+                        type="button"
+                        className="dataset-button"
+                        onClick={() => window.location.reload()}
+                    >
+                        Refresh Dataset
+                    </button>
                 </div>
-
-                <div className="dataset-summary-grid">
-                     <section className="dataset-summary-card">
-                        <p className="dataset-summary-label">Dataset Name</p>
-                        <p className="dataset-summary-value dataset-code-text">[Placeholder Name]</p>
-                    </section>
-                    <section className="dataset-summary-card">
-                        <p className="dataset-summary-label">Upload Type</p>
-                        <p className="dataset-summary-value">{dataset?.upload_type}</p>
-                    </section>
-
-                    <section className="dataset-summary-card">
-                        <p className="dataset-summary-label">Raw File Size</p>
-                        <p className="dataset-summary-value">{dataset?.raw_byte_size} bytes</p>
-                    </section>
-
-                    <section className="dataset-summary-card">
-                        <p className="dataset-summary-label">Table Count</p>
-                        {/* If dataset is null, return 0 for size. */}
-                        <p className="dataset-summary-value">{dataset?.tables?.length ?? 0}</p>
-                    </section>
-
-                    {/* <section className="dataset-summary-card">
-                        <p className="dataset-summary-label">Dataset Path</p>
-                        <p className="dataset-summary-value dataset-code-text">{dataset?.dataset_path}</p>
-                    </section> */}
-                </div>
+                {dataset && !loading && !error && (
+                    <dl className="dataset-meta">
+                        <div><dt>Upload type</dt><dd>{dataset.upload_type}</dd></div>
+                        <div><dt>File size</dt><dd>{dataset.raw_byte_size.toLocaleString()} bytes</dd></div>
+                        <div><dt>Tables</dt><dd>{dataset.tables.length}</dd></div>
+                    </dl>
+                )}
             </header>
 
-            <section className="dataset-panel dataset-panel-full">
-                <section className="dataset-panel dataset-panel-full">
-                    <div className="dataset-panel-header">
-                        <div>
-                            <p className="dataset-panel-kicker">Schema</p>
-                            <h2 className="dataset-panel-title">
-                                {selectedTable ? `${selectedTable} Schema` : 'Dataset Schema'}
-                            </h2>
-                        </div>
-                    </div>
+            {loading && <p role="status">Loading dataset…</p>}
+            {error && <p role="alert">Error: {error}</p>}
+            {!loading && !error && dataset && (
+                <>
+                    <section className="dataset-section" aria-labelledby="dataset-tables-title">
+                        <h2 id="dataset-tables-title">Tables</h2>
+                        {selectedTable === null ? (
+                            <p>No tables available.</p>
+                        ) : (
+                            <>
+                                <label htmlFor="dataset-table-select">Table</label>
+                                <select
+                                    id="dataset-table-select"
+                                    className="dataset-table-select"
+                                    value={selectedTable}
+                                    onChange={(event) => {
+                                        setSelectedTable(event.target.value);
+                                        setPage(0);
+                                        setInsightMessage(null);
+                                        setAnalysisError(null);
+                                    }}
+                                >
+                                    {dataset.tables.map((tableName) => (
+                                        <option key={tableName} value={tableName}>{tableName}</option>
+                                    ))}
+                                </select>
+                                {isCsv && (
+                                    <>
+                                        <div className="dataset-ag-grid" aria-busy={rowsLoading}>
+                                            <AgGridReact
+                                                theme={datasetGridTheme}
+                                                loading={rowsLoading}
+                                                rowData={rowData}
+                                                columnDefs={columnDefs}
+                                            />
+                                        </div>
+                                        {rowsError && <p role="alert">{rowsError}</p>}
+                                        <div className="dataset-pagination">
+                                            <button
+                                                type="button"
+                                                className="dataset-button"
+                                                disabled={page === 0 || rowsLoading}
+                                                onClick={() => setPage((current) => current - 1)}
+                                            >
+                                                Previous
+                                            </button>
+                                            <span aria-live="polite">
+                                                {rowsLoading ? "Loading rows…" :
+                                                    rowsError ? "Rows unavailable" : `Page ${page + 1} of ${Math.max(1, Math.ceil(totalRows / pageSize))} · ${totalRows} rows`}
+                                            </span>
+                                            <button
+                                                type="button"
+                                                className="dataset-button"
+                                                disabled={rowsLoading || rowsError !== null || (page + 1) * pageSize >= totalRows}
+                                                onClick={() => setPage((current) => current + 1)}
+                                            >
+                                                Next
+                                            </button>
+                                        </div>
+                                    </>
+                                )}
+                                <details key={dataset.dataset_id} className="dataset-schema" open={!isCsv}>
+                                    <summary>Schema</summary>
+                                    <pre>{JSON.stringify(selectedTableSchema ?? {}, null, 2)}</pre>
+                                </details>
+                            </>
+                        )}
+                    </section>
 
-                    <pre className="dataset-schema-block">
-                        {JSON.stringify(selectedTableSchema ?? dataset?.schema ?? {}, null, 2)}
-                    </pre>
-                </section>
-
-                <div className="dataset-panel-header">
-                    <div>
-                        <p className="dataset-panel-kicker">Tables</p>
-                        <h2 className="dataset-panel-title">Choose a table to explore</h2>
-                    </div>
-                </div>
-
-                {dataset?.upload_type === "csv" && (
-                    <>
-                        <div className="dataset-ag-grid" aria-busy={rowsLoading}>
-                            <AgGridReact
-                                theme={themeQuartz}
-                                rowData={rowData}
-                                columnDefs={columnDefs}
-                            />
-                        </div>
-                        {rowsError && <p role="alert">{rowsError}</p>}
-                        <div className="dataset-pagination">
-                            <button
-                                type="button"
-                                className="dataset-button dataset-button-secondary"
-                                disabled={page === 0 || rowsLoading}
-                                onClick={() => setPage((current) => current - 1)}
-                            >
-                                Previous
-                            </button>
-                            <span aria-live="polite">
-                                {rowsLoading ? "Loading rows…" :
-                                    `Page ${page + 1} of ${Math.max(1, Math.ceil(totalRows / pageSize))} · ${totalRows} rows`}
-                            </span>
-                            <button
-                                type="button"
-                                className="dataset-button dataset-button-secondary"
-                                disabled={rowsLoading || rowsError !== null || (page + 1) * pageSize >= totalRows}
-                                onClick={() => setPage((current) => current + 1)}
-                            >
-                                Next
-                            </button>
-                        </div>
-                    </>
-                )}
-
-                <div className="dataset-table-tabs">
-                    {/* Loop through all the tables in the total dataset and then map them to tab elements.  */}
-                    {(dataset?.tables ?? []).map((tableName) => (
-                        <button
-                            key={tableName}
-                            type="button"
-                            className={
-                                // If the table name is the same as the selected table then set the class to the active tab.
-                                tableName === selectedTable
-                                    ? 'dataset-table-tab dataset-table-tab-active'
-                                    : 'dataset-table-tab'
-                            }
-                            // On the click set the selected table to the table name from the dataset.tables array.
-                            onClick={() => {
-                                setSelectedTable(tableName);
-                                setPage(0);
-                            }}
-                        >
-                            {/* Display the table name. */}
-                            <span className="dataset-table-tab-name dataset-code-text">{tableName}</span>
-                            <span className="dataset-table-tab-meta">
-                                {tableName === selectedTable ? 'Active table' : 'Open workspace'}
-                            </span>
-                        </button>
-                    ))}
-                </div>
-            </section>
-
-            <main className="dataset-layout-grid">
-                <section className="dataset-panel">
-                    {/* Table Tabs */}
-                    <div className="dataset-panel-header">
-                        <div>
-                            <p className="dataset-panel-kicker">Workspace</p>
-                            <h2 className="dataset-panel-title">
-                                {selectedTable ? `Table Workspace: ${selectedTable}` : 'Select a table'}
-                            </h2>
-                        </div>
-                    </div>
-
-                    <div className="dataset-workspace-panel">
-                        <div className="dataset-workspace-current-table">
-                            <p className="dataset-workspace-label">Current table</p>
-                            <p className="dataset-workspace-value dataset-code-text">
-                                {selectedTable ?? 'No table selected'}
-                            </p>
-                        </div>
-
-                        <div className="dataset-workflow-steps">
-                            <div key={1} className="dataset-workflow-step">
-                                <div>
-                                    <span className="dataset-workflow-step-number">1</span>
-                                    <span className="dataset-workflow-step-label">Step 1: Initial Insight</span>
-                                </div>
-                                <p>An Initial insight gaining information about your database will be run on: {selectedTable}</p>
-
-                                <label className="dataset-input-label" htmlFor="dataset-context-input">Additional Information</label>
-                                <textarea id="dataset-context-input" value={datasetContext}
+                    {selectedTable !== null && (
+                        <section className="dataset-section" aria-labelledby="dataset-analysis-title">
+                            <h2 id="dataset-analysis-title">Analysis</h2>
+                            <label htmlFor="dataset-context-input">Additional information</label>
+                            <textarea
                                 className="dataset-input-textarea"
-                                onChange={(e) => setDatasetContext(e.target.value)}
-                                placeholder="Enter any additional information about the dataset that you want the agent to know."
-                                />  
-
-                                {/* Run the insight agent. */}
-                                <div className="dataset-workflow-step-button">
-                                    <button className="dataset-button dataset-button-primary" onClick={handleInsightClick}>
-                                    Run Insight Agent
+                                id="dataset-context-input"
+                                value={datasetContext}
+                                onChange={(event) => setDatasetContext(event.target.value)}
+                            />
+                            <button
+                                type="button"
+                                className="dataset-button dataset-button-primary"
+                                onClick={handleInsightClick}
+                            >
+                                Run Insight Agent
+                            </button>
+                            {analysisError && <p role="alert">{analysisError}</p>}
+                            {insightMessage && (
+                                <>
+                                    <pre className="dataset-insight-output">{insightMessage}</pre>
+                                    <button
+                                        type="button"
+                                        className="dataset-button"
+                                        onClick={handleInsightClick}
+                                    >
+                                        Run Aggregation Creator
                                     </button>
-                                </div>
-                                {insightMessage && <div className="agent-output-card">
-                                        {/* Pre for markdown rendering.  */}
-                                        <pre className="agent-markdown-render">{insightMessage}</pre>
-                                 </div>}
-                            </div>
-                            {insightMessage && <div key={2} className="dataset-workflow-step">
-                                <div>
-                                    <span className="dataset-workflow-step-number">2</span>
-                                    <span className="dataset-workflow-step-label">Step 2: Aggegration Creator</span>
-                                </div>
-                                <p>Aggegration Creator will create a series of aggregations on initial insights and run them to gain more information about your dataset</p>
-                                <div className="dataset-workflow-step-button">
-                                    <button className="dataset-button dataset-button-primary" onClick={handleInsightClick}>
-                                    Run Aggegration Creator
-                                    </button>
-                                </div>
-                            </div>}
-                        </div>
-                    </div>
-                </section>
-            </main>
+                                </>
+                            )}
+                        </section>
+                    )}
+                </>
+            )}
         </div>
-    )
+    );
 }
 
-export default Dataset
+export default Dataset;
