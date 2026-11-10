@@ -1,284 +1,350 @@
-import { fetchDatasetById, type Dataset as DatasetModel, queryInsightAgent, restoreTableSession } from '../shared/api';
-import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import '../styles/Dataset.css';
+import {
+  fetchDatasetById,
+  type Dataset as DatasetModel,
+  queryInsightAgent,
+  restoreTableSession,
+} from "../services/api";
+import { useEffect, useState } from "react";
+import { useParams, Link } from "react-router-dom";
+import "../styles/Dataset.css";
 
 function Dataset() {
-    const { dataset_id } = useParams<{ dataset_id: string }>();
-    const [dataset, setDataset] = useState<DatasetModel | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [insightMessage, setInsightMessage] = useState<string | null>(null);
-    const [selectedTable, setSelectedTable] = useState<string | null>(null);
-    const [datasetContext, setDatasetContext] = useState('');
+  const { dataset_id } = useParams<{ dataset_id: string }>();
+  const [dataset, setDataset] = useState<DatasetModel | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [insightMessage, setInsightMessage] = useState<string | null>(null);
+  const [selectedTable, setSelectedTable] = useState<string | null>(null);
+  const [datasetContext, setDatasetContext] = useState("");
 
-    // const [session, setSession] = useState<AgentSession | null>(null);
-    // const [queries, setQueries] = useState<AgentQuery[]>([]);
+  // const [session, setSession] = useState<AgentSession | null>(null);
+  // const [queries, setQueries] = useState<AgentQuery[]>([]);
 
-    // Use effect for fetching information about the dataset.
-    useEffect(() => {
-        const id = dataset_id;
-        if (!id) {
-            setError('Dataset ID is required');
-            setLoading(false);
-            return;
+  // Use effect for fetching information about the dataset.
+  useEffect(() => {
+    const id = dataset_id;
+    if (!id) {
+      setError("Dataset ID is required");
+      setLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    async function fetchData(datasetId: string) {
+      try {
+        const dataset = await fetchDatasetById(datasetId);
+        if (!cancelled) {
+          setDataset(dataset);
+          // Set the first table as the selected table by default.
+          setSelectedTable(dataset.tables[0] ?? null);
         }
-
-        let cancelled = false;
-
-        async function fetchData(datasetId: string) {
-            try {
-                const dataset = await fetchDatasetById(datasetId);
-                if (!cancelled) {
-                    setDataset(dataset);
-                    // Set the first table as the selected table by default.
-                    setSelectedTable(dataset.tables[0] ?? null);
-                  }
-            } catch (err) {
-                if (!cancelled) {
-                    setError(err instanceof Error ? err.message : 'An unknown error occurred');
-                }
-            } finally {
-                if (!cancelled) {
-                    setLoading(false);
-                }
-            }
+      } catch (err) {
+        if (!cancelled) {
+          setError(
+            err instanceof Error ? err.message : "An unknown error occurred",
+          );
         }
-
-        fetchData(id)
-        return () => {
-            cancelled = true;
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
         }
-    }, [dataset_id]);
+      }
+    }
 
-    useEffect(() => {
-        // If the dataset id or selected table is not set, then no operation can be performed.
-        if (!dataset_id || !selectedTable) return;
-
-        let cancelled = false;
-
-        async function restoreSession(datasetId: string, tableName: string) {
-
-            // Returns a response with the RestoreSessionResponse promise. 
-            const sessionResponse = await restoreTableSession(datasetId, tableName)
-
-            if (cancelled) return;
-
-            if (!sessionResponse.exists) {
-                // setSession(null);
-                // setQueries([]);
-                setInsightMessage(null);
-                return;
-            }
-
-            // Logging the session. 
-            console.log(sessionResponse);
-
-            // Append the existing session and queries to the state. 
-            // setSession(sessionResponse.session);
-            // setQueries(sessionResponse.queries);
-
-            // Retrieve the latest insight query from the session. (Currently there should only be 1 or 0 insight queries per existing session.)
-            // We take a copu of the sessionResponse.queries and reverse it to get the latest insight query.
-            const latestInsight = [...sessionResponse.queries].reverse().find((query) => query.agent_step === 'insight');
-
-            setInsightMessage(latestInsight?.response_output ?? null);
-        }
-
-        restoreSession(dataset_id, selectedTable);
-        // Cleanup function for when the component is unmounted (i.e if the user navigates away from the dataset page).
-        return () => {
-            cancelled = true;
-        }
-    }, [dataset_id, selectedTable]);
-
-    if (loading) return <div className="dataset-page">Loading…</div>;
-    if (error) return <div className="dataset-page">Error: {error}</div>;
-
-    const handleInsightClick = async () => {
-        // If there is no table selected then set the insight message to ask for a table to be selected. 
-        if (!selectedTable) {
-            setInsightMessage('Select a table before running the insight agent.');
-            return;
-        }
-
-        if (!dataset_id) {
-            setError('Dataset ID is required');
-            return;
-        }
-
-        try {
-            const response = await queryInsightAgent(dataset_id, { table_name: selectedTable, dataset_context: datasetContext, });
-            setInsightMessage(response.query.response_output);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'An unknown error occurred');
-        }
+    fetchData(id);
+    return () => {
+      cancelled = true;
     };
-    // Set the schema of the selected table. dataset?.schema?.[selectedTable] checks if there is an existing schema, if its null then return null. 
-    const selectedTableSchema = selectedTable ? dataset?.schema?.[selectedTable] ?? null : null;
+  }, [dataset_id]);
 
-    return (    
-        <div className="dataset-page">
-            <header className="dataset-hero">
-                <div className="dataset-breadcrumbs">
-                    <Link to="/dashboard">Datasets</Link>
-                    <span>/</span>
-                    <span className="dataset-code-text">{dataset?.dataset_id?.slice(0, 8)}…</span>
-                </div>
+  useEffect(() => {
+    // If the dataset id or selected table is not set, then no operation can be performed.
+    if (!dataset_id || !selectedTable) return;
 
-                <div className="dataset-hero-top">
-                    <div className="dataset-title-group">
-                        <p className="dataset-name">Dataset Details</p>
-                    </div>
+    let cancelled = false;
 
-                    <div className="dataset-actions">
-                        {/* Refresh the dataset page. */}
-                        <button className="dataset-button dataset-button-secondary" onClick={() => window.location.reload()}>
-                            Refresh Dataset
-                        </button>
-                    </div>
-                </div>
+    async function restoreSession(datasetId: string, tableName: string) {
+      // Returns a response with the RestoreSessionResponse promise.
+      const sessionResponse = await restoreTableSession(datasetId, tableName);
 
-                <div className="dataset-summary-grid">
-                     <section className="dataset-summary-card">
-                        <p className="dataset-summary-label">Dataset Name</p>
-                        <p className="dataset-summary-value dataset-code-text">[Placeholder Name]</p>
-                    </section>
-                    <section className="dataset-summary-card">
-                        <p className="dataset-summary-label">Upload Type</p>
-                        <p className="dataset-summary-value">{dataset?.upload_type}</p>
-                    </section>
+      if (cancelled) return;
 
-                    <section className="dataset-summary-card">
-                        <p className="dataset-summary-label">Raw File Size</p>
-                        <p className="dataset-summary-value">{dataset?.raw_byte_size} bytes</p>
-                    </section>
+      if (!sessionResponse.exists) {
+        // setSession(null);
+        // setQueries([]);
+        setInsightMessage(null);
+        return;
+      }
 
-                    <section className="dataset-summary-card">
-                        <p className="dataset-summary-label">Table Count</p>
-                        {/* If dataset is null, return 0 for size. */}
-                        <p className="dataset-summary-value">{dataset?.tables?.length ?? 0}</p>
-                    </section>
+      // Logging the session.
+      console.log(sessionResponse);
 
-                    {/* <section className="dataset-summary-card">
+      // Append the existing session and queries to the state.
+      // setSession(sessionResponse.session);
+      // setQueries(sessionResponse.queries);
+
+      // Retrieve the latest insight query from the session. (Currently there should only be 1 or 0 insight queries per existing session.)
+      // We take a copu of the sessionResponse.queries and reverse it to get the latest insight query.
+      const latestInsight = [...sessionResponse.queries]
+        .reverse()
+        .find((query) => query.agent_step === "insight");
+
+      setInsightMessage(latestInsight?.response_output ?? null);
+    }
+
+    restoreSession(dataset_id, selectedTable);
+    // Cleanup function for when the component is unmounted (i.e if the user navigates away from the dataset page).
+    return () => {
+      cancelled = true;
+    };
+  }, [dataset_id, selectedTable]);
+
+  if (loading) return <div className="dataset-page">Loading…</div>;
+  if (error) return <div className="dataset-page">Error: {error}</div>;
+
+  const handleInsightClick = async () => {
+    // If there is no table selected then set the insight message to ask for a table to be selected.
+    if (!selectedTable) {
+      setInsightMessage("Select a table before running the insight agent.");
+      return;
+    }
+
+    if (!dataset_id) {
+      setError("Dataset ID is required");
+      return;
+    }
+
+    try {
+      const response = await queryInsightAgent(dataset_id, {
+        table_name: selectedTable,
+        dataset_context: datasetContext,
+      });
+      setInsightMessage(response.query.response_output);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "An unknown error occurred",
+      );
+    }
+  };
+  // Set the schema of the selected table. dataset?.schema?.[selectedTable] checks if there is an existing schema, if its null then return null.
+  const selectedTableSchema = selectedTable
+    ? (dataset?.schema?.[selectedTable] ?? null)
+    : null;
+
+  return (
+    <div className="dataset-page">
+      <header className="dataset-hero">
+        <div className="dataset-breadcrumbs">
+          <Link to="/dashboard">Datasets</Link>
+          <span>/</span>
+          <span className="dataset-code-text">
+            {dataset?.dataset_id?.slice(0, 8)}…
+          </span>
+        </div>
+
+        <div className="dataset-hero-top">
+          <div className="dataset-title-group">
+            <p className="dataset-name">Dataset Details</p>
+          </div>
+
+          <div className="dataset-actions">
+            {/* Refresh the dataset page. */}
+            <button
+              className="dataset-button dataset-button-secondary"
+              onClick={() => window.location.reload()}
+            >
+              Refresh Dataset
+            </button>
+          </div>
+        </div>
+
+        <div className="dataset-summary-grid">
+          <section className="dataset-summary-card">
+            <p className="dataset-summary-label">Dataset Name</p>
+            <p className="dataset-summary-value dataset-code-text">
+              [Placeholder Name]
+            </p>
+          </section>
+          <section className="dataset-summary-card">
+            <p className="dataset-summary-label">Upload Type</p>
+            <p className="dataset-summary-value">{dataset?.upload_type}</p>
+          </section>
+
+          <section className="dataset-summary-card">
+            <p className="dataset-summary-label">Raw File Size</p>
+            <p className="dataset-summary-value">
+              {dataset?.raw_byte_size} bytes
+            </p>
+          </section>
+
+          <section className="dataset-summary-card">
+            <p className="dataset-summary-label">Table Count</p>
+            {/* If dataset is null, return 0 for size. */}
+            <p className="dataset-summary-value">
+              {dataset?.tables?.length ?? 0}
+            </p>
+          </section>
+
+          {/* <section className="dataset-summary-card">
                         <p className="dataset-summary-label">Dataset Path</p>
                         <p className="dataset-summary-value dataset-code-text">{dataset?.dataset_path}</p>
                     </section> */}
-                </div>
-            </header>
-
-            <section className="dataset-panel dataset-panel-full">
-                <section className="dataset-panel dataset-panel-full">
-                    <div className="dataset-panel-header">
-                        <div>
-                            <p className="dataset-panel-kicker">Schema</p>
-                            <h2 className="dataset-panel-title">
-                                {selectedTable ? `${selectedTable} Schema` : 'Dataset Schema'}
-                            </h2>
-                        </div>
-                    </div>
-
-                    <pre className="dataset-schema-block">
-                        {JSON.stringify(selectedTableSchema ?? dataset?.schema ?? {}, null, 2)}
-                    </pre>
-                </section>
-
-                <div className="dataset-panel-header">
-                    <div>
-                        <p className="dataset-panel-kicker">Tables</p>
-                        <h2 className="dataset-panel-title">Choose a table to explore</h2>
-                    </div>
-                </div>
-
-                <div className="dataset-table-tabs">
-                    {/* Loop through all the tables in the total dataset and then map them to tab elements.  */}
-                    {(dataset?.tables ?? []).map((tableName) => (
-                        <button
-                            key={tableName}
-                            type="button"
-                            className={
-                                // If the table name is the same as the selected table then set the class to the active tab.
-                                tableName === selectedTable
-                                    ? 'dataset-table-tab dataset-table-tab-active'
-                                    : 'dataset-table-tab'
-                            }
-                            // On the click set the selected table to the table name from the dataset.tables array.
-                            onClick={() => setSelectedTable(tableName)}
-                        >
-                            {/* Display the table name. */}
-                            <span className="dataset-table-tab-name dataset-code-text">{tableName}</span>
-                            <span className="dataset-table-tab-meta">
-                                {tableName === selectedTable ? 'Active table' : 'Open workspace'}
-                            </span>
-                        </button>
-                    ))}
-                </div>
-            </section>
-
-            <main className="dataset-layout-grid">
-                <section className="dataset-panel">
-                    {/* Table Tabs */}
-                    <div className="dataset-panel-header">
-                        <div>
-                            <p className="dataset-panel-kicker">Workspace</p>
-                            <h2 className="dataset-panel-title">
-                                {selectedTable ? `Table Workspace: ${selectedTable}` : 'Select a table'}
-                            </h2>
-                        </div>
-                    </div>
-
-                    <div className="dataset-workspace-panel">
-                        <div className="dataset-workspace-current-table">
-                            <p className="dataset-workspace-label">Current table</p>
-                            <p className="dataset-workspace-value dataset-code-text">
-                                {selectedTable ?? 'No table selected'}
-                            </p>
-                        </div>
-
-                        <div className="dataset-workflow-steps">
-                            <div key={1} className="dataset-workflow-step">
-                                <div>
-                                    <span className="dataset-workflow-step-number">1</span>
-                                    <span className="dataset-workflow-step-label">Step 1: Initial Insight</span>
-                                </div>
-                                <p>An Initial insight gaining information about your database will be run on: {selectedTable}</p>
-
-                                <label className="dataset-input-label" htmlFor="dataset-context-input">Additional Information</label>
-                                <textarea id="dataset-context-input" value={datasetContext}
-                                className="dataset-input-textarea"
-                                onChange={(e) => setDatasetContext(e.target.value)}
-                                placeholder="Enter any additional information about the dataset that you want the agent to know."
-                                />  
-
-                                {/* Run the insight agent. */}
-                                <div className="dataset-workflow-step-button">
-                                    <button className="dataset-button dataset-button-primary" onClick={handleInsightClick}>
-                                    Run Insight Agent
-                                    </button>
-                                </div>
-                                {insightMessage && <div className="agent-output-card">
-                                        {/* Pre for markdown rendering.  */}
-                                        <pre className="agent-markdown-render">{insightMessage}</pre>
-                                 </div>}
-                            </div>
-                            {insightMessage && <div key={2} className="dataset-workflow-step">
-                                <div>
-                                    <span className="dataset-workflow-step-number">2</span>
-                                    <span className="dataset-workflow-step-label">Step 2: Aggegration Creator</span>
-                                </div>
-                                <p>Aggegration Creator will create a series of aggregations on initial insights and run them to gain more information about your dataset</p>
-                                <div className="dataset-workflow-step-button">
-                                    <button className="dataset-button dataset-button-primary" onClick={handleInsightClick}>
-                                    Run Aggegration Creator
-                                    </button>
-                                </div>
-                            </div>}
-                        </div>
-                    </div>
-                </section>
-            </main>
         </div>
-    )
+      </header>
+
+      <section className="dataset-panel dataset-panel-full">
+        <section className="dataset-panel dataset-panel-full">
+          <div className="dataset-panel-header">
+            <div>
+              <p className="dataset-panel-kicker">Schema</p>
+              <h2 className="dataset-panel-title">
+                {selectedTable ? `${selectedTable} Schema` : "Dataset Schema"}
+              </h2>
+            </div>
+          </div>
+
+          <pre className="dataset-schema-block">
+            {JSON.stringify(
+              selectedTableSchema ?? dataset?.schema ?? {},
+              null,
+              2,
+            )}
+          </pre>
+        </section>
+
+        <div className="dataset-panel-header">
+          <div>
+            <p className="dataset-panel-kicker">Tables</p>
+            <h2 className="dataset-panel-title">Choose a table to explore</h2>
+          </div>
+        </div>
+
+        <div className="dataset-table-tabs">
+          {/* Loop through all the tables in the total dataset and then map them to tab elements.  */}
+          {(dataset?.tables ?? []).map((tableName) => (
+            <button
+              key={tableName}
+              type="button"
+              className={
+                // If the table name is the same as the selected table then set the class to the active tab.
+                tableName === selectedTable
+                  ? "dataset-table-tab dataset-table-tab-active"
+                  : "dataset-table-tab"
+              }
+              // On the click set the selected table to the table name from the dataset.tables array.
+              onClick={() => setSelectedTable(tableName)}
+            >
+              {/* Display the table name. */}
+              <span className="dataset-table-tab-name dataset-code-text">
+                {tableName}
+              </span>
+              <span className="dataset-table-tab-meta">
+                {tableName === selectedTable
+                  ? "Active table"
+                  : "Open workspace"}
+              </span>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <main className="dataset-layout-grid">
+        <section className="dataset-panel">
+          {/* Table Tabs */}
+          <div className="dataset-panel-header">
+            <div>
+              <p className="dataset-panel-kicker">Workspace</p>
+              <h2 className="dataset-panel-title">
+                {selectedTable
+                  ? `Table Workspace: ${selectedTable}`
+                  : "Select a table"}
+              </h2>
+            </div>
+          </div>
+
+          <div className="dataset-workspace-panel">
+            <div className="dataset-workspace-current-table">
+              <p className="dataset-workspace-label">Current table</p>
+              <p className="dataset-workspace-value dataset-code-text">
+                {selectedTable ?? "No table selected"}
+              </p>
+            </div>
+
+            <div className="dataset-workflow-steps">
+              <div key={1} className="dataset-workflow-step">
+                <div>
+                  <span className="dataset-workflow-step-number">1</span>
+                  <span className="dataset-workflow-step-label">
+                    Step 1: Initial Insight
+                  </span>
+                </div>
+                <p>
+                  An Initial insight gaining information about your database
+                  will be run on: {selectedTable}
+                </p>
+
+                <label
+                  className="dataset-input-label"
+                  htmlFor="dataset-context-input"
+                >
+                  Additional Information
+                </label>
+                <textarea
+                  id="dataset-context-input"
+                  value={datasetContext}
+                  className="dataset-input-textarea"
+                  onChange={(e) => setDatasetContext(e.target.value)}
+                  placeholder="Enter any additional information about the dataset that you want the agent to know."
+                />
+
+                {/* Run the insight agent. */}
+                <div className="dataset-workflow-step-button">
+                  <button
+                    className="dataset-button dataset-button-primary"
+                    onClick={handleInsightClick}
+                  >
+                    Run Insight Agent
+                  </button>
+                </div>
+                {insightMessage && (
+                  <div className="agent-output-card">
+                    {/* Pre for markdown rendering.  */}
+                    <pre className="agent-markdown-render">
+                      {insightMessage}
+                    </pre>
+                  </div>
+                )}
+              </div>
+              {insightMessage && (
+                <div key={2} className="dataset-workflow-step">
+                  <div>
+                    <span className="dataset-workflow-step-number">2</span>
+                    <span className="dataset-workflow-step-label">
+                      Step 2: Aggegration Creator
+                    </span>
+                  </div>
+                  <p>
+                    Aggegration Creator will create a series of aggregations on
+                    initial insights and run them to gain more information about
+                    your dataset
+                  </p>
+                  <div className="dataset-workflow-step-button">
+                    <button
+                      className="dataset-button dataset-button-primary"
+                      onClick={handleInsightClick}
+                    >
+                      Run Aggegration Creator
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  );
 }
 
-export default Dataset
+export default Dataset;
