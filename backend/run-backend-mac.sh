@@ -32,6 +32,8 @@ fi
 
 env/bin/python -m pip install -r requirements.txt
 
+export DYLD_LIBRARY_PATH="$(brew --prefix openssl@3)/lib${DYLD_LIBRARY_PATH:+:$DYLD_LIBRARY_PATH}"
+
 exec env/bin/python -m uvicorn main:app --reload
 
 # bash run-backend-mac.sh
