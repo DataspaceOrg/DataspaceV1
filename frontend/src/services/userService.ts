@@ -20,9 +20,13 @@ export type LoginResponse = {
   access_time: string;
 };
 
-export async function registerUser(body: UserCreate) {
-  // Send the request to the  /signup API in the backend.
-  const response = await fetch(`${getAddress()}/auth/register`, {
+type LoginCredentials = Pick<UserCreate, "email" | "password">;
+
+async function submitAuth(
+  action: "register" | "login",
+  body: UserCreate | LoginCredentials,
+): Promise<LoginResponse> {
+  const response = await fetch(`${getAddress()}/auth/${action}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -34,6 +38,13 @@ export async function registerUser(body: UserCreate) {
     throw new Error(await getApiError(response));
   }
 
-  const AuthData = await response.json();
-  return AuthData;
+  return response.json();
+}
+
+export function registerUser(body: UserCreate): Promise<LoginResponse> {
+  return submitAuth("register", body);
+}
+
+export function loginUser(body: LoginCredentials): Promise<LoginResponse> {
+  return submitAuth("login", body);
 }
