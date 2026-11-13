@@ -27,12 +27,6 @@ class LoginChallenge(BaseModel):
     password: str
 
 
-class LoginResponse(BaseModel):
-    message: str
-    user: PublicUser
-    access_time: datetime
-
-
 class UserCreate(BaseModel):
     username: str
     email: str
@@ -45,3 +39,18 @@ class UserCreate(BaseModel):
             raise ValueError(
                 "Password must contain at least one digit and be between 7 and 72 characters long")
         return password
+
+
+class RegistrationResponse(BaseModel):
+    message: str
+    user: PublicUser
+    access_time: datetime
+
+
+class LoginResponse(BaseModel):
+    message: str
+    user: PublicUser
+    access_time: datetime
+    access_token: str
+    token_type: str = "bearer"
+    expires_in: int
