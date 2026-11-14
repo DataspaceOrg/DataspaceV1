@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException
 import logging
 from datetime import datetime, timezone
-from services.user_service import create_user
-from models.user_models import UserCreate, PublicUser, LoginResponse
+from services.user_service import create_user, login
+from models.user_models import UserCreate, PublicUser, LoginResponse, LoginChallenge
 
 logger = logging.getLogger(__name__)
 
@@ -27,3 +27,20 @@ def register_user(body: UserCreate) -> LoginResponse:
     except Exception as e:
         raise HTTPException(
             status_code=400, detail=f"Could not create user: {e}")
+
+
+@router.post("/login", status_code=201)
+def login_user(body: LoginChallenge) -> LoginResponse:
+    user = login(body)
+
+    if user is None:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid email or password",
+        )
+
+    return LoginResponse(
+        message="Logged in successfully",
+        user=user,
+        access_time=datetime.now(timezone.utc)
+    )
