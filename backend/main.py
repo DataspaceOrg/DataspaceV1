@@ -2,7 +2,6 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from db_helpers import db_routes
 from ai_helpers import prompt_agent_service
-from auth_user_helpers import user_routes
 from routes import user_routes
 
 from routes import dataset_routes

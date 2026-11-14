@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { registerUser, type UserCreate } from "../services/userService";
+import {
+  registerUser,
+  loginUser,
+  type UserCreate,
+} from "../services/userService";
 
 import "../styles/AuthPage.css";
 
@@ -29,7 +33,7 @@ function AuthPage({ mode }: { mode: AuthMode }) {
         user_data = await registerUser(new_user);
         console.log("USER DATA", user_data);
       } else {
-        // user_data = await loginUser({ email, password });
+        user_data = await loginUser({ email, password });
       }
 
       // Set local storage paramters for our session.
