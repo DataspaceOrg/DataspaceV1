@@ -7,7 +7,7 @@ export type Dataset = {
     dataset_id: string;
     upload_type: UploadType;
     raw_byte_size: number;
-    dataset_path: string;
+    path: string;
     tables: string[];
     schema: Record<string, Record<string, string>>;
 }

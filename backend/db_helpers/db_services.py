@@ -1,12 +1,9 @@
-import os
 from contextlib import closing
 import sqlite3
 import duckdb
-import uuid
 from pathlib import Path
-import logging
 from .db_constants import Dataset
-from db_helpers.db_constants import DATA_ROOT, METADATA_DB, METADATA_TABLE
+from services.dataset_service import local_dataset_file
 from fastapi import UploadFile
 from typing import Any
 
@@ -37,13 +34,14 @@ def detect_upload_type(filename: str):
         return "unknown"
 
 
-def save_raw_file(dataset_dir: Path, file: UploadFile) -> Path:
+def save_raw_file(dataset_dir: Path, filename: str, file: UploadFile) -> tuple[Path, int]:
     '''
     save_raw_file is a function that saves the raw file to the dataset directory.
     It is connected to the uploading feature of the frontend in Upload.tsx.
 
     Args:
         dataset_dir: Path - The directory to save the raw file to. (Must Exist) Will be the dataset directory under its uuid.
+        filename: str - The validated basename.
         file: UploadFile - The file to save.
 
     Returns:
@@ -55,7 +53,7 @@ def save_raw_file(dataset_dir: Path, file: UploadFile) -> Path:
         raise FileNotFoundError(
             f"Dataset directory {dataset_dir} does not exist.")
 
-    raw_saving_path = dataset_dir / f"{file.filename}"
+    raw_saving_path = dataset_dir / filename
     size = 0
 
     with open(raw_saving_path, "wb") as f:
@@ -98,7 +96,7 @@ def save_parquet_file(dataset_dir: Path, raw_csv_path: Path) -> Path:
     return parquet_path
 
 
-def get_parquet_schema(parquet_path: Path) -> dict[str, str]:
+def get_parquet_schema(parquet_path: Path) -> dict[str, dict[str, str]]:
     '''
     Returns column names and types for a single Parquet file. 
     DuckDB infers types when writing CSV to Parquet, so we can read them back from Parquet file into our metadata.
@@ -112,8 +110,10 @@ def get_parquet_schema(parquet_path: Path) -> dict[str, str]:
     '''
 
     schema: dict[str, dict[str, str]] = {}
-    result = duckdb.execute(
-        "DESCRIBE (SELECT * FROM read_parquet(?))", [str(parquet_path)]).fetchall()
+    with closing(duckdb.connect()) as conn:
+        result = conn.execute(
+            "DESCRIBE (SELECT * FROM read_parquet(?))", [str(parquet_path)]
+        ).fetchall()
 
     # eg return) {"column_name": "TYPE"}
     # parquet_path.stem is the name of the parquet file without the extension.
@@ -133,125 +133,53 @@ def get_sqlite_table_names(sqlite_path: Path) -> list[str]:
         list[str] - The table names in the sqlite database.
     '''
 
-    # Connect to the sqlite database.
-    sqlite_conn = sqlite3.connect(str(sqlite_path))
-    # Get the table names from the sqlite database.
-    cursor = sqlite_conn.execute(
-        "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name")
-
-    table_names = cursor.fetchall()
-
-    return [table[0] for table in table_names]
+    with closing(sqlite3.connect(sqlite_path.as_uri() + "?mode=ro", uri=True)) as conn:
+        rows = conn.execute(
+            "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name"
+        ).fetchall()
+    return [row[0] for row in rows]
 
 
-def get_sqlite_schema(sqlite_path: Path) -> dict:
-    '''
-    get_sqlite_schema is a function that gets the schema of the sqlite database.
-    It is used in the process of retrieving the schema for the dataset metadata. (SQLite databases)
-
-    Args:
-        sqlite_path: Path - The path to the sqlite database.
-
-    Returns:
-        the schema of a SQLite database, for each table it will be a dictionary of the column names and their types. 
-    '''
-    table_names = get_sqlite_table_names(sqlite_path)
-
-    # dict[table_name: dict[column_name: column_type]]
-    schema: dict[str, dict[str, str]] = {}
-
-    conn = sqlite3.connect(str(sqlite_path))
-
-    # For each table get the information about the table, getting the column names and their types.
-    for table in table_names:
-        # Fetching all of the columns in the table and their types
-        cursor = conn.execute("SELECT * FROM pragma_table_info(?)", (table,))
-        schema[table] = {column[1]: column[2]
-                         or "TEXT" for column in cursor.fetchall()}
-
+def get_sqlite_schema(sqlite_path: Path) -> dict[str, dict[str, str]]:
+    schema = {}
+    with closing(sqlite3.connect(sqlite_path.as_uri() + "?mode=ro", uri=True)) as conn:
+        for table in get_sqlite_table_names(sqlite_path):
+            columns = conn.execute("SELECT * FROM pragma_table_info(?)", (table,))
+            schema[table] = {column[1]: column[2] or "TEXT" for column in columns}
     return schema
 
 
-def get_sample_rows(dataset: Dataset, num_rows: int, table_name: str) -> list[dict[str, any]]:
-    '''
-    get_sample_rows is a db_helper function that gets the sample rows from a dataset and returns them as a list of dictionaries.
-    If table name is none then we will return none.
+def get_sample_rows(dataset: Dataset, num_rows: int, table_name: str) -> list[dict[str, Any]]:
+    if table_name not in dataset.tables:
+        raise ValueError("Table not found.")
 
-    For CSV -> Parquet: we will read the parquet file and return the sample rows.
-    For SQLite we will read the SQLite database and return the sample rows. 
-    '''
-    if table_name is None:
-        raise ValueError("No table name provided.")
+    if dataset.upload_type == "csv":
+        return get_csv_rows(dataset, num_rows, 0)["rows"]
 
-    # Initialize duckDB connection.
-    conn = duckdb.connect()
-    dataset_path = dataset.dataset_path
-
-    try:
-        if dataset.upload_type == "csv":
-            # If csv then we load in the parquet file and return the sample rows. There is only one table in the dataset.
-            dataframe = conn.execute(
-                "SELECT * FROM read_parquet(?) LIMIT ?", [dataset_path, num_rows]).fetchdf()
-
-        # If its a db type then it is an sqlite database.
-        elif dataset.upload_type == "db":
-            # if sqlite then we moust attach the sqlite file into DuckDB and expose it with the name sqlite_db.
-            conn.execute(
-                f"ATTACH DATABASE '{dataset_path}' AS sqlite_db (TYPE sqlite)")
-            dataframe = conn.execute(
-                f"SELECT * FROM sqlite_db.{table_name} LIMIT ?", [num_rows]).fetchdf()
-
-    finally:
-        conn.close()
-
-    return dataframe.to_dict(orient="records")
+    with local_dataset_file(dataset) as path:
+        with closing(sqlite3.connect(path.as_uri() + "?mode=ro", uri=True)) as conn:
+            conn.row_factory = sqlite3.Row
+            table = '"' + table_name.replace('"', '""') + '"'
+            return [dict(row) for row in conn.execute(f"SELECT * FROM {table} LIMIT ?", (num_rows,))]
 
 
 def get_csv_rows(dataset: Dataset, num_rows: int, offset: int) -> dict[str, Any]:
-    """
-    get_csv_rows retrieves a page of rows from a csv dataset stored as Parquet
-
-    args:
-        dataset:    Dataset     - metadata of the dataset to be read
-        num_rows:   int         - max number of rows per page
-        offset:     int         - number of rows to skip
-    returns:
-        dict[str, Any]  - rows, total row count, pagination values
-    """
     if dataset.upload_type != "csv":
         raise ValueError("Only .csv files are supported")
-
     if num_rows < 1:
         raise ValueError("number of rows must be positive")
     if offset < 0:
         raise ValueError("offset must not be negative")
 
-    # init DuckDB conn
-    conn = duckdb.connect()
-    dataset_path = dataset.dataset_path
-
-    try:
-        # get total number of rows for pagination
+    with local_dataset_file(dataset) as path, closing(duckdb.connect()) as conn:
         total_rows = conn.execute(
-            "SELECT COUNT(*) FROM read_parquet(?)",
-            [dataset_path]
+            "SELECT COUNT(*) FROM read_csv_auto(?)", [str(path)]
         ).fetchone()[0]
-
-        # read the requested page from the Parquet file
         cursor = conn.execute(
-            "SELECT * FROM read_parquet(?) LIMIT ? OFFSET ?",
-            [dataset_path, num_rows, offset]
+            "SELECT * FROM read_csv_auto(?) LIMIT ? OFFSET ?", [str(path), num_rows, offset]
         )
-
-        # match each row value to its column name
-        column_names = [column[0] for column in cursor.description]
-        rows = [
-            dict(zip(column_names, row))
-            for row in cursor.fetchall()
-        ]
-
-    finally:
-        conn.close()
+        columns = [column[0] for column in cursor.description]
+        rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
     return {
         "rows": rows,
@@ -259,15 +187,3 @@ def get_csv_rows(dataset: Dataset, num_rows: int, offset: int) -> dict[str, Any]
         "num_rows": num_rows,
         "offset": offset,
     }
-
-# Potential next functions to add
-# - Save JSON Files
-# - Conversion function of SQL to CSV (this can be done by converting each table into a parquet file.)
-# - Conversion of CSV to SQL (this can be done by converting each parquet file into a table in the sqlite database.)
-
-
-if __name__ == "__main__":
-    pass
-
-
-# running python3 -m db_helpers.db_services

@@ -9,6 +9,7 @@ function Upload() {
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState<UploadStatus>("idle");
   const [pct, setUploadProgress] = useState(0);
+  const [errorMessage, setErrorMessage] = useState("");
 
   function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
     // Get the first file, when we select file.
@@ -19,6 +20,13 @@ function Upload() {
 
   async function handleFileDatasetUpload() {
     if (!file || status === "uploading") return;
+
+    const userId = localStorage.getItem("dataspace_user_id");
+    if (!userId) {
+      setErrorMessage("Log in to upload a dataset.");
+      setStatus("error");
+      return;
+    }
 
     setStatus("uploading");
     setUploadProgress(0);
@@ -31,6 +39,7 @@ function Upload() {
         "http://localhost:8000/dataset/upload",
         formData,
         {
+          headers: { "x-user-id": userId },
           onUploadProgress: (event) => {
             if (event.total) {
               setUploadProgress(Math.round((event.loaded / event.total) * 100));
@@ -42,7 +51,8 @@ function Upload() {
       console.log("Uploaded dataset:", response.data);
       setStatus("success");
     } catch (error) {
-      console.error("Dataset upload failed:", error);
+      const detail = axios.isAxiosError(error) ? error.response?.data?.detail : null;
+      setErrorMessage(typeof detail === "string" ? detail : "File upload failed.");
       setStatus("error");
     }
   }
@@ -66,7 +76,7 @@ function Upload() {
       {status === "success" && (
         <p className="text-green-500">File uploaded successfully</p>
       )}
-      {status === "error" && <p className="text-red-500">File upload failed</p>}
+      {status === "error" && <p className="text-red-500" role="alert">{errorMessage}</p>}
       {status === "uploading" && (
         <p className="text-yellow-500">Uploading... {pct}%</p>
       )}

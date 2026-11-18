@@ -186,7 +186,7 @@ class InsightAgent:
             return {"message": "Insight agent run successfully", "session": self.session, "query": self.agent_query} 
 
         # Format sample rows works for both types, currently differentiating in case of errors. 
-        elif self.dataset.upload_type == "db":
+        elif self.dataset.upload_type in ("db", "sqlite"):
             sample_rows = self.retrieve_sample_rows(table_name)
             self.formatted_sample_rows = self.format_sample_rows(sample_rows)
             self.build_system_prompt(dataset_context)

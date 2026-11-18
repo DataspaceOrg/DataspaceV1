@@ -1,45 +1,46 @@
-from pathlib import Path
-from fastapi import UploadFile
+import logging
 import os
-from azure.identity import DefaultAzureCredential
-from azure.storage.blob import BlobServiceClient
-from uuid import uuid4
+from collections.abc import Iterator
+from contextlib import contextmanager
+from pathlib import Path
+from tempfile import TemporaryDirectory
+
+from connection import connect_azure_blob_storage
+from db_helpers.db_constants import Dataset
+from db_helpers.db_metadata import metadata_references_blob, save_metadata
+
+logger = logging.getLogger(__name__)
 
 
-class DatasetService:
+def dataset_container() -> str:
+    return os.environ["CONTAINER_NAME"]
 
-    @staticmethod
-    def detect_upload_type(filename: str):
-        extension = Path(filename).suffix.lower()
 
-        if extension == ".csv":
-            return "csv"
-        elif extension == ".db":
-            return "db"
-        elif extension == ".sqlite":
-            return "sqlite"
-        else:
-            return "unknown"
+def store_dataset(dataset: Dataset, source: Path) -> None:
+    with connect_azure_blob_storage() as storage:
+        blob = storage.get_blob_client(container=dataset_container(), blob=dataset.path)
+        with source.open("rb") as file:
+            blob.upload_blob(file, length=dataset.raw_byte_size, overwrite=False)
 
-    @staticmethod
-    def save_file_to_azure(file: UploadFile) -> dict:
-        account_url = os.environ["AZURE_STORAGE_ACCOUNT_URL"]
-        container_name = os.environ["CONTAINER_NAME"]
+        try:
+            save_metadata(dataset)
+        except Exception:
+            # A commit can succeed even when the connection fails before acknowledgment.
+            try:
+                if not metadata_references_blob(dataset):
+                    blob.delete_blob()
+            except Exception:
+                logger.exception("Could not reconcile blob for dataset %s", dataset.dataset_id)
+            raise
 
-        # temporary dataset_id
-        dataset_id = str(uuid4())
-        upload_type = DatasetService.detect_upload_type(file.filename or "")
-        # Add conditional check.
-        blob_name = f"{dataset_id}/{file.filename}"
-        file.file.seek(0)
 
-        default_credential = DefaultAzureCredential()
-        service_client = BlobServiceClient(
-            account_url=account_url, credential=default_credential)
-
-        blob = service_client.get_blob_client(
-            container=container_name, blob=blob_name)
-
-        blob.upload_blob(data=file.file, overwrite=False)
-
-        return {"dataset_id": dataset_id, "container": container_name, "blob_name": blob_name, }
+@contextmanager
+def local_dataset_file(dataset: Dataset) -> Iterator[Path]:
+    with TemporaryDirectory() as directory:
+        # The metadata path is a blob key. Use a fixed name on the local filesystem.
+        path = Path(directory) / "source"
+        with connect_azure_blob_storage() as storage:
+            blob = storage.get_blob_client(container=dataset_container(), blob=dataset.path)
+            with path.open("wb") as file:
+                blob.download_blob().readinto(file)
+        yield path

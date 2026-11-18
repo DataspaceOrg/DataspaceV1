@@ -2,6 +2,7 @@ import duckdb
 from ai_helpers.agent_data_profilers.profiler_models import ColumnProfile
 from db_helpers.db_constants import Dataset
 from db_helpers.db_metadata import get_dataset_by_id
+from services.dataset_service import local_dataset_file
 
 ## table_profiler
 
@@ -26,8 +27,9 @@ class TableProfiler:
         
         #dataset metadata object
         self.dataset_metadata = dataset
+        self.dataset_path = str(dataset_path)
         self.conn = self.connect_db_instance()
-        self.attach_sqlite(self.conn, dataset_path)
+        self.attach_sqlite(self.conn, self.dataset_path)
 
     def connect_db_instance(self) -> duckdb.DuckDBPyConnection:
         '''
@@ -40,13 +42,14 @@ class TableProfiler:
         Attach the SQLite database for DuckDB to properly query the db
         '''
         if self.dataset_metadata.upload_type in {"db", "sqlite"}:
-            conn.execute(f"ATTACH DATABASE '{dataset_path}' AS sqlite_db (TYPE sqlite)")
+            quoted_path = dataset_path.replace("'", "''")
+            conn.execute(f"ATTACH DATABASE '{quoted_path}' AS sqlite_db (TYPE sqlite, READ_ONLY)")
 
 
     def get_table_instance(self, table_name: str) -> tuple:
         """
         return the SQL reference that DUCKDB should query to build information on the given table.
-        CSV Files will be read as parquet files.
+        CSV files are read directly.
         SQLite files will be attached as sqlite.db
 
         Args:
@@ -56,7 +59,7 @@ class TableProfiler:
         """
 
         if self.dataset_metadata.upload_type == "csv":
-            return "read_parquet(?)", [self.dataset_metadata.dataset_path]
+            return "read_csv_auto(?)", [self.dataset_path]
 
         if self.dataset_metadata.upload_type in {"db", "sqlite"}:
             return f"sqlite_db.{quote_name(table_name)}", []
@@ -122,8 +125,12 @@ if __name__ == "__main__":
     # CSV
     # dataset_metadata = get_dataset_by_id("bffc71df-31ee-401e-9277-776c941115b3", "5a025d5d-7fe4-4f5e-b9f5-2aa2a42871b1")
 
-    table_profiler = TableProfiler(dataset_metadata, dataset_metadata.dataset_path)
-    a = table_profiler.generate_table_profiler_sql('table', 'column')
-    breakpoint()
+    with local_dataset_file(dataset_metadata) as dataset_path:
+        table_profiler = TableProfiler(dataset_metadata, dataset_path)
+        try:
+            print(table_profiler.generate_table_profiler_sql("table", "column"))
+        finally:
+            table_profiler.conn.close()
+
 
 # python3 -m ai_helpers.agent_data_profilers.table_profiler
