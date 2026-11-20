@@ -96,6 +96,38 @@ export async function fetchDatasetById(dataset_id: string): Promise<Dataset> {
     return data;
 }
 
+export async function downloadDataset(dataset_id: string): Promise<Dataset> {
+    const response = await fetch(`${API_BASE}/db/datasets/${dataset_id}/download`, {
+        headers: {
+            'x-user-id': getUserId(),
+        },
+    });
+    // const response = await fetch(`${API_BASE}/db/dataset/${encodeURIComponent(dataset_id)}`);
+
+    if (!response.ok) {
+        throw new Error(`Failed to fetch dataset: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data;
+}
+
+export async function deleteDataset(dataset_id: string): Promise<Dataset> {
+    const response = await fetch(`${API_BASE}/db/datasets/${dataset_id}`, {
+        headers: {
+            'x-user-id': getUserId(),
+        },
+    });
+    // const response = await fetch(`${API_BASE}/db/dataset/${encodeURIComponent(dataset_id)}`);
+
+    if (!response.ok) {
+        throw new Error(`Failed to fetch dataset: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data;
+}
+
 export async function restoreTableSession(dataset_id: string, table_name: string): Promise<RestoreSessionResponse> {
 
     const params = new URLSearchParams({ table_name });
