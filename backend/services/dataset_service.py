@@ -21,14 +21,13 @@ class DatasetService:
         raise ValueError(f"Unsupported file extension: {extension}")
         
     @staticmethod
-    def save_file_to_azure(file: UploadFile) -> dict:
+    def save_file_to_azure(file: UploadFile, user_id: str) -> dict:
         account_url = os.environ["AZURE_STORAGE_ACCOUNT_URL"]
         container_name = os.environ["CONTAINER_NAME"]
 
         # temporary dataset_id
         dataset_id = str(uuid4())
-        user_id = ''
-        upload_type = DatasetService.detect_upload_type(file.filename, user_id)
+        upload_type = DatasetService.detect_upload_type(file.filename)
         # Add conditional check.
         blob_name = f"{dataset_id}/{file.filename}"
         file.file.seek(0)
@@ -63,7 +62,7 @@ class DatasetService:
         return {"dataset_id": dataset_id, "container": container_name, "blob_name": blob_name, "upload_type": upload_type}
 
     @staticmethod
-    def get_dataset_metadata(dataset_id: str) -> dict:
+    def get_dataset_metadata(dataset_id: str, user_id: str) -> dict:
         connection_sql = connect_azure_sql()
         try:
             cursor = connection_sql.cursor()
@@ -72,9 +71,9 @@ class DatasetService:
                 SELECT id, user_id, upload_type, path, name, description,
                     [columns], [tables], [schema]
                 FROM dbo.Dataset
-                WHERE id = %(dataset_id)s
+                WHERE id = %(dataset_id)s AND user_id = %(user_id)s
                 """,
-                {"dataset_id": dataset_id},
+                {"dataset_id": dataset_id, "user_id": user_id},
             )
             row = cursor.fetchone()
 

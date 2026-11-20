@@ -20,7 +20,7 @@ def upload_dataset(file: UploadFile = File(...), x_user_id: str = Header(..., al
     finally:
         file.file.close()
 
-@router.get("/db/dataset/{dataset_id}")
+@router.get("/dataset/{dataset_id}")
 def get_dataset_metadata(dataset_id: str, x_user_id: str = Header(..., alias="x-user-id")):
     try:
         dataset = DatasetService.get_dataset_metadata(dataset_id)
@@ -31,7 +31,7 @@ def get_dataset_metadata(dataset_id: str, x_user_id: str = Header(..., alias="x-
         logger.exception("Azure dataset retrieval failed")
         raise HTTPException(502, "Could not retrieve the dataset from storage.")
 
-@router.get("/db/dataset/{dataset_id}/download")
+@router.get("/dataset/{dataset_id}/download")
 def download_dataset(dataset_id: str, x_user_id: str = Header(..., alias="x-user-id")):
     try:
         dataset = DatasetService.get_dataset_metadata(dataset_id)
@@ -40,7 +40,7 @@ def download_dataset(dataset_id: str, x_user_id: str = Header(..., alias="x-user
         chunks, filename, content_type = DatasetService.get_dataset_download(
             dataset_id, x_user_id
         )
-        return 
+        return filename
     except AzureError:
         logger.exception("Azure dataset download failed")
         raise HTTPException(502, "Could not download the dataset from storage.")
@@ -57,7 +57,7 @@ def update_dataset_metadata(dataset_id: str, x_user_id:str = Header(..., alias="
         logger.exception("Azure dataset update failed")
         raise HTTPException(502, "Could not update the dataset in storage.")
 
-@router.get("/db/datasets")
+@router.get("/datasets")
 def list_datasets(x_user_id: str = Header(..., alias="x-user-id")):
     try:
         datasets = DatasetService.list_datasets(x_user_id)
@@ -66,7 +66,7 @@ def list_datasets(x_user_id: str = Header(..., alias="x-user-id")):
         logger.exception("Azure dataset listing failed")
         raise HTTPException(502, "Could not list the datasets from storage.")
 
-@router.delete("/db/dataset/{dataset_id}")
+@router.delete("/dataset/{dataset_id}")
 def delete_dataset(dataset_id: str, x_user_id: str = Header(..., alias="x-user-id")):
     try:
         success = DatasetService.delete_dataset(dataset_id, x_user_id)

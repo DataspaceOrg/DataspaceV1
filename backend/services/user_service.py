@@ -31,6 +31,7 @@ def create_user(user: UserCreate) -> PublicUser:
         INSERTED.updated_at
     VALUES (%(username)s, %(email)s, %(password_hash)s)
     """
+    
     parameters = {
         "username": user.username,
         "email": user.email,

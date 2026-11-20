@@ -12,7 +12,7 @@ export type Dataset = {
     schema: Record<string, Record<string, string>>;
 }
 
-function getUserId(): string {
+export function getUserId(): string {
     const userId = localStorage.getItem('dataspace_user_id');
 
     if (!userId) {
@@ -25,7 +25,7 @@ function getUserId(): string {
 export async function fetchDatasets(): Promise<Dataset[]> {
 
     // Currently ste to local backend. 
-    const response = await fetch(`${API_BASE}/db/datasets`, {
+    const response = await fetch(`${API_BASE}/datasets`, {
         headers: {
             'x-user-id': getUserId(),
         },
@@ -40,7 +40,7 @@ export async function fetchDatasets(): Promise<Dataset[]> {
 }
 
 export async function fetchDatasetById(dataset_id: string): Promise<Dataset> {
-    const response = await fetch(`${API_BASE}/db/datasets/${dataset_id}`, {
+    const response = await fetch(`${API_BASE}/datasets/${dataset_id}`, {
         headers: {
             'x-user-id': getUserId(),
         },
@@ -56,7 +56,7 @@ export async function fetchDatasetById(dataset_id: string): Promise<Dataset> {
 }
 
 export async function downloadDataset(dataset_id: string): Promise<Dataset> {
-    const response = await fetch(`${API_BASE}/db/datasets/${dataset_id}/download`, {
+    const response = await fetch(`${API_BASE}/datasets/${dataset_id}/download`, {
         headers: {
             'x-user-id': getUserId(),
         },
@@ -72,7 +72,7 @@ export async function downloadDataset(dataset_id: string): Promise<Dataset> {
 }
 
 export async function deleteDataset(dataset_id: string): Promise<Dataset> {
-    const response = await fetch(`${API_BASE}/db/datasets/${dataset_id}`, {
+    const response = await fetch(`${API_BASE}/datasets/${dataset_id}`, {
         method: "DELETE",
         headers: {
             'x-user-id': getUserId(),
@@ -89,14 +89,13 @@ export async function deleteDataset(dataset_id: string): Promise<Dataset> {
 }
 
 export async function updateDataset(dataset_id: string, ): Promise<Dataset> {
-    const response = await fetch(`${API_BASE}/db/datasets/${dataset_id}`, {
+    const response = await fetch(`${API_BASE}/datasets/${dataset_id}`, {
         method: 'PATCH',
         headers: {
             'x-user-id': getUserId(),
         },
         body: JSON.stringify({metadata: 'something'}),
     });
-    // const response = await fetch(`${API_BASE}/db/dataset/${encodeURIComponent(dataset_id)}`);
 
     if (!response.ok) {
         throw new Error(`Failed to fetch dataset: ${response.statusText}`);
@@ -107,7 +106,7 @@ export async function updateDataset(dataset_id: string, ): Promise<Dataset> {
 }
 
 export async function listDatasets(): Promise<Dataset> {
-    const response = await fetch(`${API_BASE}/db/datasets`, {
+    const response = await fetch(`${API_BASE}/datasets`, {
         headers: {
             'x-user-id': getUserId()
         },
