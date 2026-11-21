@@ -1,6 +1,7 @@
 from pathlib import Path
 from connection import connect_azure_sql, connect_azure_blob_storage
 from fastapi import UploadFile
+from azure.storage.blob import ContentSettings
 import os
 from azure.identity import DefaultAzureCredential
 from azure.storage.blob import BlobServiceClient
@@ -22,6 +23,9 @@ class DatasetService:
         
     @staticmethod
     def save_file_to_azure(file: UploadFile, user_id: str) -> dict:
+        if not file.filename:
+            raise ValueError("A filename is required.")
+        
         account_url = os.environ["AZURE_STORAGE_ACCOUNT_URL"]
         container_name = os.environ["CONTAINER_NAME"]
 
@@ -30,12 +34,12 @@ class DatasetService:
         upload_type = DatasetService.detect_upload_type(file.filename)
         # Add conditional check.
         blob_name = f"{dataset_id}/{file.filename}"
-        file.file.seek(0)
 
         connection_blob = connect_azure_blob_storage()
         
         connection_sql = connect_azure_sql()
         try: 
+            file.file.seek(0)
             cursor = connection_sql.cursor()
             cursor.execute(
                 """
@@ -114,10 +118,10 @@ class DatasetService:
 
             connection_blob = connect_azure_blob_storage()
 
-            download_stream = connection_blob.download_blob()
-            chunks = download_stream.chunks()
+            blob = connection_blob.get_blob_client(container = os.environ["CONTAINER_NAME"], blob = row.path)
+            chunks = blob.download_blob().chunks()
 
-            content_type = connection_blob.get_blob_properties().content_settings.content_type
+            content_type = blob.get_blob_properties().content_settings.content_type
 
             return chunks, row.name, content_type
         finally:

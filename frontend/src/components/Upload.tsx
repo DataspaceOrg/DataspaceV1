@@ -36,7 +36,7 @@ function Upload() {
         formData,
         {
           headers: {
-            "x-user-id": userId,
+            "x-user-id": userId ?? "",
           },
           onUploadProgress: (e) => {
             if (e.total) {

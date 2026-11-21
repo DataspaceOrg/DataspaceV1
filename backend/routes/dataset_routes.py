@@ -2,10 +2,11 @@ import logging
 from fastapi import FastAPI, APIRouter, HTTPException
 from fastapi import UploadFile, File, Header, Body
 from azure.core.exceptions import AzureError
+from fastapi.responses import StreamingResponse
 
 from services.dataset_service import DatasetService
 
-router = APIRouter(prefix="/dataset", tags=["dataset"])
+router = APIRouter(prefix="/db", tags=["dataset"])
 logger = logging.getLogger(__name__)
 
 
@@ -14,6 +15,8 @@ def upload_dataset(file: UploadFile = File(...), x_user_id: str = Header(..., al
     try:
         dataset = DatasetService.save_file_to_azure(file, x_user_id)
         return dataset
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
     except AzureError:
         logger.exception("Azure dataset upload failed")
         raise HTTPException(502, "Could not upload the file to storage.")
@@ -23,7 +26,7 @@ def upload_dataset(file: UploadFile = File(...), x_user_id: str = Header(..., al
 @router.get("/dataset/{dataset_id}")
 def get_dataset_metadata(dataset_id: str, x_user_id: str = Header(..., alias="x-user-id")):
     try:
-        dataset = DatasetService.get_dataset_metadata(dataset_id)
+        dataset = DatasetService.get_dataset_metadata(dataset_id, x_user_id)
         if not dataset:
             raise HTTPException(404, "Dataset not found.")
         return dataset
@@ -40,7 +43,11 @@ def download_dataset(dataset_id: str, x_user_id: str = Header(..., alias="x-user
         chunks, filename, content_type = DatasetService.get_dataset_download(
             dataset_id, x_user_id
         )
-        return filename
+        return StreamingResponse(
+            chunks,
+            media_type=content_type,
+            headers={"Content-Disposition": f"attachment; filename={filename}"},
+        )
     except AzureError:
         logger.exception("Azure dataset download failed")
         raise HTTPException(502, "Could not download the dataset from storage.")
