@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   registerUser,
   loginUser,
+  type AuthResponse,
   type UserCreate,
 } from "../services/userService";
 
@@ -27,19 +28,17 @@ function AuthPage({ mode }: { mode: AuthMode }) {
     setSubmitting(true);
 
     try {
-      let user_data;
+      let user_data: AuthResponse;
       if (SigningUp) {
         const new_user = { username, email, password } as UserCreate;
         user_data = await registerUser(new_user);
-        console.log("USER DATA", user_data);
       } else {
         user_data = await loginUser({ email, password });
       }
 
-      // Set local storage paramters for our session.
-      //   localStorage.setItem("dataspace_user_id", user_data.user.user_id);
-      //   localStorage.setItem("dataspace_username", user_data.user.username);
-      //   localStorage.setItem("dataspace_email", user_data.user.email);
+      localStorage.setItem("dataspace_user_id", user_data.user.user_id);
+      localStorage.setItem("dataspace_username", user_data.user.username);
+      localStorage.setItem("dataspace_email", user_data.user.email);
 
       // Navigate to the dashboard page.
       navigate("/dashboard");

@@ -39,9 +39,6 @@ function Dashboard() {
     };
   }, []);
 
-  if (loading) return <div className="dashboard-container">Loading…</div>;
-  if (error) return <div className="dashboard-container">Error: {error}</div>;
-
   return (
     <div className="dashboard-container">
       {/* Dashboard Goal - Display all of the datasets that are uploaded to the database. */}
@@ -52,7 +49,11 @@ function Dashboard() {
       </section>
       <p className="dashboard-description">Latest Datasets</p>
       <div className="dashboard-datasets">
-        {datasets.length === 0 ? (
+        {loading ? (
+          <p>Loading datasets…</p>
+        ) : error ? (
+          <p role="alert">Could not load datasets: {error}</p>
+        ) : datasets.length === 0 ? (
           <p>No Datasets Yet. Upload a New one to get Started! </p>
         ) : (
           <ul>

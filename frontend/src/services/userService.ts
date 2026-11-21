@@ -7,7 +7,7 @@ export type UserCreate = {
 };
 
 export type PublicUser = {
-  id: string;
+  user_id: string;
   username: string;
   email: string;
   created_at: string;
@@ -19,13 +19,12 @@ export type LoginChallenge = {
   password: string;
 };
 
-export type LoginResponse = {
+export type AuthResponse = {
   message: string;
   user: PublicUser;
-  access_time: string;
 };
 
-export async function registerUser(body: UserCreate) {
+export async function registerUser(body: UserCreate): Promise<AuthResponse> {
   // Send the request to the  /signup API in the backend.
   const response = await fetch(`${getAddress()}/auth/register`, {
     method: "POST",
@@ -39,11 +38,10 @@ export async function registerUser(body: UserCreate) {
     throw new Error(await getApiError(response));
   }
 
-  const AuthData = await response.json();
-  return AuthData;
+  return response.json();
 }
 
-export async function loginUser(body: LoginChallenge): Promise<LoginResponse> {
+export async function loginUser(body: LoginChallenge): Promise<AuthResponse> {
   const response = await fetch(`${getAddress()}/auth/login`, {
     method: "POST",
     headers: {
@@ -56,6 +54,5 @@ export async function loginUser(body: LoginChallenge): Promise<LoginResponse> {
     throw new Error(await getApiError(response));
   }
 
-  const LoginData = await response.json();
-  return LoginData;
+  return response.json();
 }
