@@ -1,7 +1,6 @@
-import { Routes, Route, useLocation } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import "./styles/App.css";
 import Sidebar from "./components/Sidebar";
-import Upload from "./components/Upload";
 import Dataset from "./components/Dataset";
 import Dashboard from "./components/Dashboard";
 import AuthPage from "./components/AuthPage";
@@ -26,7 +25,7 @@ function App() {
           <Route path="/signup" element={<AuthPage mode="signup" />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/dataset/:dataset_id/" element={<Dataset />} />
-          <Route path="/upload" element={<Upload />} />
+          <Route path="/upload" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </div>
     </div>

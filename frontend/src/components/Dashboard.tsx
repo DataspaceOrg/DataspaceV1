@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import "../styles/Dashboard.css";
 import { fetchDatasets, type Dataset } from "../services/api";
 import { Link } from "react-router-dom";
+import Upload from "./Upload";
 
 function Dashboard() {
   const [datasets, setDatasets] = useState<Dataset[]>([]);
@@ -45,6 +46,10 @@ function Dashboard() {
     <div className="dashboard-container">
       {/* Dashboard Goal - Display all of the datasets that are uploaded to the database. */}
       <h1 className="dashboard-title">Welcome Back, {username}</h1>
+      <section className="dashboard-upload-window">
+        <h2>Upload a file</h2>
+        <Upload />
+      </section>
       <p className="dashboard-description">Latest Datasets</p>
       <div className="dashboard-datasets">
         {datasets.length === 0 ? (

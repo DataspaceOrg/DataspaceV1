@@ -20,6 +20,24 @@
     margin-bottom: 2rem;
 }
 
+.dashboard-upload-window {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    border: 1px solid var(--ds-border);
+    border-radius: var(--ds-radius-md);
+}
+
+.dashboard-upload-window h2 {
+    margin: 0 0 1rem;
+    color: var(--ds-text);
+    font-size: 1.6rem;
+}
+
+.dashboard-upload-window h1 {
+    font-size: 1.6rem;
+    margin: 0 0 1rem;
+}
+
 .dashboard-datasets {
     padding: 0;
     margin: 0;

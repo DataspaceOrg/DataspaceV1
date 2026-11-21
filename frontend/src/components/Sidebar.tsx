@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
-import { FiGrid, FiUpload, FiSettings, FiChevronLeft, FiLogOut } from 'react-icons/fi'
+import { FiGrid, FiSettings, FiChevronLeft, FiLogOut } from 'react-icons/fi'
 import dataspaceImage from '../images/Dataspace.png'
 import '../styles/Sidebar.css'
 
@@ -49,12 +49,6 @@ function Sidebar() {
         <NavLink to="/dashboard" className={({ isActive }) => `sidebar-button ${isActive ? 'active' : ''}`} title="Dashboard">
           <FiGrid className="sidebar-icon" />
           <span className="sidebar-label">Dashboard</span>
-        </NavLink>
-
-        {/* Upload - navigates to upload page */}
-        <NavLink to="/upload" className={({ isActive }) => `sidebar-button ${isActive ? 'active' : ''}`} title="Upload Files">
-          <FiUpload className="sidebar-icon" />
-          <span className="sidebar-label">Upload</span>
         </NavLink>
 
         {/* Settings Button */}
