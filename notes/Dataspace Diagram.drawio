@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net">
   <diagram name="Page-1" id="qu5sg8kXmd5e4wUhd2dL">
-    <mxGraphModel dx="3204" dy="2070" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="3073" dy="1985" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -632,7 +632,7 @@
         <mxCell id="oo83uOwNWfEE0Z5shK8--71" parent="1" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;Sprint 2 Goals:&lt;/h1&gt;&lt;div&gt;Allow for a conversation agent to be embedded. The dataset information can be fetched by the conversation agent. A new dataset will be fetched from storage, it can be written to, editied, have additional information then be sent back to storage.&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Download -&amp;gt; Edit Locally -&amp;gt; Upload Back.&amp;nbsp;&lt;/div&gt;" vertex="1">
           <mxGeometry height="205" width="320" x="-1530" y="675" as="geometry" />
         </mxCell>
-        <mxCell id="nsMeJd_c_fcsu2wH51GI-1" parent="1" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;Endpoint Creation&lt;/h1&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;" vertex="1">
+        <mxCell id="nsMeJd_c_fcsu2wH51GI-1" parent="1" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;" value="\" vertex="1">
           <mxGeometry height="120" width="290" x="-1650" y="170" as="geometry" />
         </mxCell>
         <mxCell id="nsMeJd_c_fcsu2wH51GI-2" parent="1" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;Orchestrating Agent&lt;/h1&gt;&lt;p&gt;A limit behind the multi-pipeline steps is how it can act as a limiting factor early on in interpretation. The outputs and analysis from the pipeline should be used an initial understanding and exploration that the orchestration model can use to continue investigating, verifying and extending the output.&lt;/p&gt;&lt;p&gt;Would Astra 6.1 possibly used as. a second analysis agent to the side of the existing pipeline to run aggregations? (Investigation agent which does an answer for specific questions, check disputed findings from the pipeline).&lt;/p&gt;&lt;p&gt;https://developers.openai.com/api/docs/guides/agents/orchestration.&lt;/p&gt;&lt;p&gt;Initially should we try to use OpenAI Agents to try and build out the pipeline and then use Astra as the model for data analytics?&amp;nbsp;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;" vertex="1">
@@ -885,6 +885,9 @@
         </mxCell>
         <mxCell id="x_JBT0oU6vYSNrmiimhy-9" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Depending on the output we could have multiple types of analysis models that are more tailored to ML data, SQL data, or general information." vertex="1">
           <mxGeometry height="30" width="230" x="-460" y="-280" as="geometry" />
+        </mxCell>
+        <mxCell id="x_JBT0oU6vYSNrmiimhy-11" parent="1" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;Dataspace Ideas&lt;/h1&gt;&lt;p&gt;1. Environment creation based on business context. For example Construction, Finance, Accounting all have their own types of data. By understanding what institution is using the service we can have the models be more tuned towards the expectation of financial data. This could be embedded inside of an &quot;About you&quot; section&lt;/p&gt;&lt;p&gt;2. Presentation creator. After findings have been created there should be an ability to export a package that can automatically build a powerpoint file that contains findings per page with visualizations.&lt;/p&gt;&lt;p&gt;3. Multiple ownership and collaboration. Multiple people can be invited to a Dataspace project and run the models or edit information displayed. Annotations can be added to the dataset and the full display of the output and profile created.&lt;/p&gt;&lt;p&gt;4. Findings board. A log of information found from working with the dataset. This could be a tab inside of the dataset or workspace that indicates the important pinned findings and when they were found. The model outputs should support a pin findings feature.&amp;nbsp;&lt;/p&gt;" vertex="1">
+          <mxGeometry height="430" width="270" x="-1610" y="-360" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
