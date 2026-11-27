@@ -40,11 +40,19 @@ class DatasetService:
         connection_sql = connect_azure_sql()
         try: 
             file.file.seek(0)
+            file.file.seek(0, os.SEEK_END)
+            raw_byte_size = file.file.tell()
+            file.file.seek(0)
             cursor = connection_sql.cursor()
             cursor.execute(
                 """
-                INSERT INTO dbo.Dataset (id, user_id, upload_type, path, name)
-                VALUES (%(id)s, %(user_id)s, %(upload_type)s, %(path)s, %(name)s)
+                INSERT INTO dbo.Dataset (
+                    id, user_id, upload_type, path, name, raw_byte_size
+                )
+                VALUES (
+                    %(id)s, %(user_id)s, %(upload_type)s, %(path)s, %(name)s,
+                    %(raw_byte_size)s
+                )
                 """,
                 {
                     "id": dataset_id,
@@ -52,6 +60,7 @@ class DatasetService:
                     "upload_type": upload_type,
                     "path": blob_name,
                     "name": file.filename,
+                    "raw_byte_size": raw_byte_size,
                     "description": 'description',
                 },
             )
@@ -62,7 +71,11 @@ class DatasetService:
         finally: 
             connection_sql.close()
 
-        connection_blob.upload_blob(data=file.file, overwrite=False)
+        blob_client = connection_blob.get_blob_client(
+            container=container_name,
+            blob=blob_name,
+        )
+        blob_client.upload_blob(data=file.file, overwrite=False)
         return {"dataset_id": dataset_id, "container": container_name, "blob_name": blob_name, "upload_type": upload_type}
 
     @staticmethod
@@ -73,7 +86,7 @@ class DatasetService:
             cursor.execute(
                 """
                 SELECT id, user_id, upload_type, path, name, description,
-                    [columns], [tables], [schema]
+                    raw_byte_size, [columns], [tables], [schema]
                 FROM dbo.Dataset
                 WHERE id = %(dataset_id)s AND user_id = %(user_id)s
                 """,
@@ -85,12 +98,13 @@ class DatasetService:
                 return None
 
             return {
-                "id": str(row.id),
+                "dataset_id": str(row.id),
                 "user_id": str(row.user_id),
                 "upload_type": row.upload_type,
-                "path": row.path,
+                "dataset_path": row.path,
                 "name": row.name,
                 "description": row.description,
+                "raw_byte_size": row.raw_byte_size,
                 "columns": json.loads(row.columns) if row.columns else [],
                 "tables": json.loads(row.tables) if row.tables else [],
                 "schema": json.loads(row.schema) if row.schema else {},
@@ -128,29 +142,30 @@ class DatasetService:
             connection_sql.close()
 
     @staticmethod
-    def update_dataset_metadata(dataset_id: str, metadata: dict) -> dict:
+    def update_dataset_metadata(dataset_id: str, user_id: str, metadata: dict) -> dict:
         connection_sql = connect_azure_sql()
         try:
             cursor = connection_sql.cursor()
             cursor.execute(
                 """
                 UPDATE dbo.Dataset
-                SET description = %(description)s,
-                    columns = %(columns)s,
-                    tables = %(tables)s,
-                    schema = %(schema)s
-                WHERE id = %(dataset_id)s
+                SET description = COALESCE(%(description)s, description),
+                    [columns] = COALESCE(%(columns)s, [columns]),
+                    [tables] = COALESCE(%(tables)s, [tables]),
+                    [schema] = COALESCE(%(schema)s, [schema])
+                WHERE id = %(dataset_id)s AND user_id = %(user_id)s
                 """,
                 {
                     "dataset_id": dataset_id,
+                    "user_id": user_id,
                     "description": metadata.get("description"),
-                    "columns": json.dumps(metadata.get("columns", [])),
-                    "tables": json.dumps(metadata.get("tables", [])),
-                    "schema": json.dumps(metadata.get("schema", {})),
+                    "columns": json.dumps(metadata["columns"]) if "columns" in metadata else None,
+                    "tables": json.dumps(metadata["tables"]) if "tables" in metadata else None,
+                    "schema": json.dumps(metadata["schema"]) if "schema" in metadata else None,
                 },
             )
             connection_sql.commit()
-            return DatasetService.get_dataset_metadata(dataset_id)
+            return DatasetService.get_dataset_metadata(dataset_id, user_id)
         except Exception:
             connection_sql.rollback()
             raise
@@ -166,7 +181,7 @@ class DatasetService:
             cursor.execute(
                 """
                 SELECT id, user_id, upload_type, path, name, description,
-                    [columns], [tables], [schema]
+                    raw_byte_size, [columns], [tables], [schema]
                 FROM dbo.Dataset
                 WHERE user_id = %(user_id)s
                 """,
@@ -177,12 +192,13 @@ class DatasetService:
             datasets = []
             for row in rows:
                 datasets.append({
-                    "id": str(row.id),
+                    "dataset_id": str(row.id),
                     "user_id": str(row.user_id),
                     "upload_type": row.upload_type,
-                    "path": row.path,
+                    "dataset_path": row.path,
                     "name": row.name,
                     "description": row.description,
+                    "raw_byte_size": row.raw_byte_size,
                     "columns": json.loads(row.columns) if row.columns else [],
                     "tables": json.loads(row.tables) if row.tables else [],
                     "schema": json.loads(row.schema) if row.schema else {},
@@ -213,7 +229,11 @@ class DatasetService:
             blob_path = row.path
 
             connection_blob = connect_azure_blob_storage()
-            connection_blob.delete_blob(blob_path)
+            blob_client = connection_blob.get_blob_client(
+                container=os.environ["CONTAINER_NAME"],
+                blob=blob_path,
+            )
+            blob_client.delete_blob()
             cursor.execute(
                 """
                 DELETE FROM dbo.Dataset

@@ -37,7 +37,7 @@ def get_dataset_metadata(dataset_id: str, x_user_id: str = Header(..., alias="x-
 @router.get("/dataset/{dataset_id}/download")
 def download_dataset(dataset_id: str, x_user_id: str = Header(..., alias="x-user-id")):
     try:
-        dataset = DatasetService.get_dataset_metadata(dataset_id)
+        dataset = DatasetService.get_dataset_metadata(dataset_id, x_user_id)
         if not dataset:
             raise HTTPException(404, "Dataset not found.")
         chunks, filename, content_type = DatasetService.get_dataset_download(
@@ -55,8 +55,9 @@ def download_dataset(dataset_id: str, x_user_id: str = Header(..., alias="x-user
 @router.patch("/dataset/{dataset_id}")
 def update_dataset_metadata(dataset_id: str, x_user_id:str = Header(..., alias="x-user-id"), metadata: dict = Body(...)):
     try:
-        metadata["metadata"] = metadata['metadata']
-        updated_dataset = DatasetService.update_dataset_metadata(dataset_id, metadata)
+        updated_dataset = DatasetService.update_dataset_metadata(
+            dataset_id, x_user_id, metadata
+        )
         if not updated_dataset:
             raise HTTPException(404, "Dataset not found.")
         return updated_dataset
