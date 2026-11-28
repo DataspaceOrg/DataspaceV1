@@ -37,9 +37,9 @@ function AuthPage({ mode }: { mode: AuthMode }) {
       }
 
       // Set local storage paramters for our session.
-      //   localStorage.setItem("dataspace_user_id", user_data.user.user_id);
-      //   localStorage.setItem("dataspace_username", user_data.user.username);
-      //   localStorage.setItem("dataspace_email", user_data.user.email);
+        localStorage.setItem("dataspace_user_id", user_data.user.id);
+        localStorage.setItem("dataspace_username", user_data.user.username);
+        localStorage.setItem("dataspace_email", user_data.user.email);
 
       // Navigate to the dashboard page.
       navigate("/dashboard");
