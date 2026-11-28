@@ -1,9 +1,9 @@
 import {
-  fetchDatasetById,
   type Dataset as DatasetModel,
   queryInsightAgent,
   restoreTableSession,
 } from "../services/api";
+import {fetchDatasetById} from "../services/dbServices";
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import "../styles/Dataset.css";

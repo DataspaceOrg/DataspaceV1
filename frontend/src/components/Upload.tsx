@@ -32,11 +32,11 @@ function Upload() {
     // axios.post(url, data, config) formData is our request body.
     try {
       const response = await axios.post(
-        "http://localhost:8000/db/upload_db",
+        "http://localhost:8000/db/upload",
         formData,
         {
           headers: {
-            "x-user-id": userId,
+            "x-user-id": userId ?? "",
           },
           onUploadProgress: (e) => {
             if (e.total) {
@@ -65,9 +65,12 @@ function Upload() {
 
     try {
       const response = await axios.post(
-        "http://localhost:8000/dataset/upload",
+        "http://localhost:8000/db/upload_db",
         formData,
         {
+          headers: {
+            "x-user-id": localStorage.getItem("dataspace_user_id") ?? "",
+          },
           onUploadProgress: (event) => {
             if (event.total) {
               setUploadProgress(Math.round((event.loaded / event.total) * 100));

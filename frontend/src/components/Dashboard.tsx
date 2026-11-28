@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import "../styles/Dashboard.css";
-import { fetchDatasets, type Dataset } from "../services/api";
+import { fetchDatasets, type Dataset } from "../services/dbServices";
 import { Link } from "react-router-dom";
 
 function Dashboard() {

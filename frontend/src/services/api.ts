@@ -1,3 +1,5 @@
+import { getUserId } from "./dbServices";
+
 const API_BASE = 'http://localhost:8000';
 
 /* Defined Constants for the API */
@@ -49,51 +51,6 @@ export type RestoreSessionResponse = {
     exists: boolean;
     session: AgentSession | null;
     queries: AgentQuery[];
-}
-
-function getUserId(): string {
-    const userId = localStorage.getItem('dataspace_user_id');
-
-    if (!userId) {
-        throw new Error("User is not logged in.");
-    }
-
-    return userId;
-}
-
-/* Dataset API Services */
-
-export async function fetchDatasets(): Promise<Dataset[]> {
-
-    // Currently ste to local backend. 
-    const response = await fetch(`${API_BASE}/db/datasets`, {
-        headers: {
-            'x-user-id': getUserId(),
-        },
-    });
-
-    if (!response.ok) {
-        throw new Error(`Failed to fetch datasets: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    return data;
-}
-
-export async function fetchDatasetById(dataset_id: string): Promise<Dataset> {
-    const response = await fetch(`${API_BASE}/db/datasets/${dataset_id}`, {
-        headers: {
-            'x-user-id': getUserId(),
-        },
-    });
-    // const response = await fetch(`${API_BASE}/db/dataset/${encodeURIComponent(dataset_id)}`);
-
-    if (!response.ok) {
-        throw new Error(`Failed to fetch dataset: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    return data;
 }
 
 export async function restoreTableSession(dataset_id: string, table_name: string): Promise<RestoreSessionResponse> {

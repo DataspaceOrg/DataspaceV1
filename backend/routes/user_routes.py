@@ -5,9 +5,7 @@ from services.user_service import create_user, login
 from models.user_models import UserCreate, PublicUser, LoginResponse, LoginChallenge
 
 logger = logging.getLogger(__name__)
-
 router = APIRouter(prefix="/auth", tags=["auth"])
-
 
 @router.post("/register", status_code=201)
 def register_user(body: UserCreate) -> LoginResponse:

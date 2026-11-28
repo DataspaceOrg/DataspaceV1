@@ -29,7 +29,6 @@ class Dataset(BaseModel):
     dataset_id: str
     user_id: str
     upload_type: UploadType
-    raw_byte_size: int
     dataset_path: str # The dataset path.
     tables: list[str] # all the table names in the dataset.
     schema: dict[str, dict[str, str]] #schema is a dictionary of the table name and the column names and their types.
